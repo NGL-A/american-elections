@@ -7,6 +7,8 @@ View(cou)
 cou2 <- na.omit(cou)
 View(cou2)
 
+#?
+
 library(tidyverse)
 library(maps)
 #install.packages("mapproj")
