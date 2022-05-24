@@ -7,8 +7,6 @@ View(cou)
 cou2 <- na.omit(cou)
 View(cou2)
 
-#?
-
 library(tidyverse)
 library(maps)
 #install.packages("mapproj")
@@ -61,3 +59,4 @@ p <- ggplot(data = usa_election, aes(x = long, y = lat))+
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 p
 
+s
