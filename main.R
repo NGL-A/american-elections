@@ -32,7 +32,7 @@ ggplot(usa, aes(x = long, y = lat, group = group)) +
 abb <- data.frame(state = state.name, Abb = state.abb)
 
 # TOTAL VOTES
-election <- cou2 %>% 
+election <- el2 %>% 
   group_by(state) %>% 
   summarise(votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
             votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
