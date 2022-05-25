@@ -1,12 +1,11 @@
-el <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
-#attach(el)
+cou <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
+attach(cou)
 plot(percentage20_Donald_Trump, lat)
 hist(lat[votes20_Donald_Trump], freq = TRUE)
 lines(density(lat[votes20_Donald_Trump]))
-View(el)
-el2 <- na.omit(el)
-View(el2)
-attach(el2)
+View(cou)
+cou2 <- na.omit(cou)
+View(cou2)
 
 library(tidyverse)
 library(maps)
@@ -32,7 +31,7 @@ ggplot(usa, aes(x = long, y = lat, group = group)) +
 abb <- data.frame(state = state.name, Abb = state.abb)
 
 # TOTAL VOTES
-election <- el2 %>% 
+election <- cou2 %>% 
   group_by(state) %>% 
   summarise(votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
             votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
@@ -59,4 +58,3 @@ p <- ggplot(data = usa_election, aes(x = long, y = lat))+
   geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 p
-
