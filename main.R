@@ -59,4 +59,3 @@ p <- ggplot(data = usa_election, aes(x = long, y = lat))+
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 p
 
-s
