@@ -58,4 +58,3 @@ p <- ggplot(data = usa_election, aes(x = long, y = lat))+
   geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 p
-
