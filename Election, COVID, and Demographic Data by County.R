@@ -63,7 +63,7 @@ ggplot(usa, aes(x = long, y = lat, group = group)) +
 
 # First Map
 p<-ggplot(data = usa_election, aes(x = long, y = lat),color = usa_election$Party)+
-  geom_polygon(aes(group = group, fill = Party),color = usa_election$Party, size = 0.1) +
+  geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 p
 colnames(cou2)
