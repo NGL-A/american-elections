@@ -20,18 +20,14 @@ library(DT)
 
 options(repr.plot.width = 17, repr.plot.height = 9)
 
-# WORLD MAP
-world_map <- map_data("world")
-ggplot(world_map, aes(x = long, y = lat, group = group)) +
-  geom_polygon()
-
 # US MAP 
 usa <- map_data("state")
 ggplot(usa, aes(x = long, y = lat, group = group)) +
   geom_polygon(fill="lightgray", colour = "white")
 
 abb <- data.frame(state = state.name, Abb = state.abb)
-
+abb2<-abb
+abb2$state<-tolower(abb2$state)
 # TOTAL VOTES
 election <- cou2 %>% 
   group_by(state) %>% 
@@ -39,9 +35,9 @@ election <- cou2 %>%
             votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
   ungroup() %>% 
   gather(Candidate, Votes, -state) %>% 
-  mutate(Party = factor(if_else(Candidate == "Clinton", "Democrat", "Republican"))) %>% 
-  left_join(abb) %>% 
-  mutate(state = tolower(state)) %>% 
+  mutate(Party = factor(if_else(Candidate == "votes16_Hillary_Clinton", "Democrat", "Republican"))) %>% 
+  left_join(abb2) %>% 
+  #mutate(state = tolower(state)) %>% 
   rename("region" = state)
 
 election2 <- election %>% 
@@ -50,14 +46,24 @@ election2 <- election %>%
   ungroup() %>% 
   inner_join(election)
 
+
+
+
+election2<-election2[,-2]
+
+colnames(abb2)[1]<-"region"
+colnames(election2)[1]<-"Abb"
+election3<-left_join(election2,abb2)
 # Left Join for creating map
-usa_election <- left_join(usa, election2) %>% 
+usa_election <- left_join(usa, election3) %>% 
   filter(!is.na(Party))
 
+ggplot(usa, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill="lightgray", colour = "white")
 
 # First Map
-p <- ggplot(data = usa_election, aes(x = long, y = lat))+
-  geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
+p<-ggplot(data = usa_election, aes(x = long, y = lat),color = usa_election$Party)+
+  geom_polygon(aes(group = group, fill = Party),color = usa_election$Party, size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 p
 colnames(cou2)
