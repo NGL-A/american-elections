@@ -1,10 +1,10 @@
-cou <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
+data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
 #attach(cou)
 #View(cou)
-cou2 <- na.omit(cou)
-attach(cou2)
+data <- na.omit(data_uncleaned)
+attach(data)
 #View(cou2)
-rownames(cou2) <- 1:nrow(cou2)
+rownames(data) <- 1:nrow(data)
 plot(percentage20_Donald_Trump, lat)
 hist(lat[votes20_Donald_Trump], freq = TRUE)
 lines(density(lat[votes20_Donald_Trump]))
@@ -23,8 +23,8 @@ library(gRbase)
 library(ISLR2)
 library(leaps)
 
-v<-c(cou2$percentage20_Donald_Trump<0.5)
-regfit.full <- regsubsets(v~., data=cou2[,-1:-13], really.big = T,nvmax = 38)
+v<-c(data$percentage20_Donald_Trump<0.5)
+regfit.full <- regsubsets(v~., data=data[,-1:-13], really.big = T,nvmax = 38)
 reg.summary <- summary(regfit.full)
 reg.summary$outmat
 reg.summary$rsq
@@ -83,7 +83,7 @@ abb <- data.frame(state = state.name, Abb = state.abb)
 abb2<-abb
 abb2$state<-tolower(abb2$state)
 # TOTAL VOTES
-election <- cou2 %>% 
+election <- data %>% 
   group_by(state) %>% 
   summarise(votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
             votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
@@ -120,7 +120,7 @@ p<-ggplot(data = usa_election, aes(x = long, y = lat),color = usa_election$Party
   geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 p
-colnames(cou2)
+colnames(data)
 
 
 plot(Hispanic)
@@ -129,8 +129,8 @@ hist(Income[percentage20_Donald_Trump<0.5])
 
 q=c(percentage20_Joe_Biden>0.5)
 
-ggplot(cou2,aes(x=long,group=q,fill=q))+
+ggplot(data,aes(x=long,group=q,fill=q))+
   +     geom_histogram(position="dodge",binwidth=0.25)+theme_bw()
 
-ggplot(cou2,aes(x=cou2$Asian, group=q,fill=q))+
+ggplot(data,aes(x=cou2$Asian, group=q,fill=q))+
   geom_histogram(position="identity",alpha=0.5,binwidth=1)+theme_bw()
