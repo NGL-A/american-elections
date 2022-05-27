@@ -75,8 +75,6 @@ options(repr.plot.width = 17, repr.plot.height = 9)
 
 # US MAP 
 usa <- map_data("state")
-ggplot(usa, aes(x = long, y = lat, group = group)) +
-  geom_polygon(fill="lightgray", colour = "white")
 
 abb <- data.frame(state = state.name, Abb = state.abb)
 abb2<-abb
@@ -120,6 +118,57 @@ p<-ggplot(data = usa_election, aes(x = long, y = lat),color = usa_election$Party
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 p
 colnames(data)
+
+
+
+
+
+
+
+
+
+data2 <- data %>% 
+  group_by(state) %>% 
+  summarise(TotalPop = sum(TotalPop),
+            Black = mean(Black),Hispanic=mean(Hispanic),Asian=mean(Asian),votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
+            votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
+  ungroup() %>% 
+  #gather(Candidate, Votes, -state) %>% 
+  #mutate(Party = factor(if_else(Candidate == "votes16_Hillary_Clinton", "Democrat", "Republican"))) %>% 
+  #mutate(state = tolower(state)) %>% 
+  rename("region" = state)
+
+colnames(abb2)[1]<-"Abb"
+colnames(abb2)[2]<-"region"
+data3<-left_join(data2,abb2)
+
+colnames(data3)[1]<-"Abb"
+colnames(data3)[8]<-"region"
+# Left Join for creating map
+usa_data <- left_join(usa, data3) 
+
+
+# First Map
+p<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$TotalPop)+
+  geom_polygon(aes(group = group, fill = TotalPop),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
+
+
+p2=p+scale_fill_gradient(names<-"TotalPop", low="White", high = "Black")
+
+p2
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 plot(Hispanic)
