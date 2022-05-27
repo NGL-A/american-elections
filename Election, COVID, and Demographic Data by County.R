@@ -1,9 +1,8 @@
 data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
-#attach(cou)
-#View(cou)
+
 data <- na.omit(data_uncleaned)
 attach(data)
-#View(cou2)
+
 rownames(data) <- 1:nrow(data)
 plot(percentage20_Donald_Trump, lat)
 hist(lat[votes20_Donald_Trump], freq = TRUE)
@@ -132,5 +131,5 @@ q=c(percentage20_Joe_Biden>0.5)
 ggplot(data,aes(x=long,group=q,fill=q))+
   +     geom_histogram(position="dodge",binwidth=0.25)+theme_bw()
 
-ggplot(data,aes(x=cou2$Asian, group=q,fill=q))+
+ggplot(data,aes(x=data$Asian, group=q,fill=q))+
   geom_histogram(position="identity",alpha=0.5,binwidth=1)+theme_bw()
