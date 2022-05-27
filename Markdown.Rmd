@@ -34,29 +34,22 @@ plot(pressure)
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
-```{r}
-data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
-data <- na.omit(data_uncleaned)
-attach(data)
-#View(data)
-rownames(data) <- 1:nrow(data)
-plot(percentage20_Donald_Trump, lat)
-hist(lat[votes20_Donald_Trump], freq = TRUE)
-lines(density(lat[votes20_Donald_Trump]))
-
+```{r, results='hide', warning=FALSE, message= FALSE}
 library(tidyverse)
 library(maps)
-#install.packages("mapproj")
 library(png)
 library(grid)
 library(cowplot)
 library(statebins)
 library(DT)
-
-
 library(gRbase)
+library(magick)
 library(ISLR2)
 library(leaps)
+
+data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
+data <- na.omit(data_uncleaned)
+attach(data)
 
 v<-c(data$percentage20_Donald_Trump<0.5)
 regfit.full <- regsubsets(v~., data=data[,-1:-13], really.big = T,nvmax = 38)
@@ -153,9 +146,8 @@ hist(Income[percentage20_Donald_Trump<0.5])
 q=c(percentage20_Joe_Biden>0.5)
 
 ggplot(data,aes(x=long,group=q,fill=q))+
-  +     geom_histogram(position="dodge",binwidth=0.25)+theme_bw()
+  geom_histogram(position="dodge",binwidth=0.25)+theme_bw()
 
 ggplot(data,aes(x=data$Asian, group=q,fill=q))+
   geom_histogram(position="identity",alpha=0.5,binwidth=1)+theme_bw()
 ```
-
