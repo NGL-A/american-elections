@@ -11,9 +11,28 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Elections, COVID and Demographic Data
 
-Once every 4 year one of the most relevant political events in the world takes place in the United States: the election of the American President. It is much more than just a day: this time consists in months and months of preparations (campaigns, public speeches, sponsors...), from which data scientists are able to collect great quatities of data to be studied and shaped in order to produce statistics.
 
-The data set we chose is named "Election, COVID, and Demographic Data by County" and it collects a various amount of information which is related to the 2016 Clinton-Trump and the 2020 Trump-Biden elections. The original file consist of 4.867 observations divided in 51 variables which are:
+
+Every 4 year one of the most relevant political events in the world takes place: the election of the US President. After months, even years, of preparations (campaigns, public speeches, sponsors...) the eyes of the entire world are looking to the results of those elections, to the one who will be leading the "free world" in the near future.
+
+Our project wants to focus on what might affect one's vote: if the geographical area is relevant, if the type of work can change the preference, if one ethnicity is more likely to vote a Party over the other and if there is any strong correlation between the variables.  
+We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until 1st November 2020 (few days before the elections).
+
+
+Since it had many NA values (the names of some counties changed name) we started by cleaning our dataset from these.
+
+```{r, results='hide'}
+data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
+data <- na.omit(data_uncleaned)
+attach(data)
+```
+
+And we also decided which between our 51 variables we didn't need. We deleted [...] columns (because... ?) and maintained:  
+1. County: chchg
+2. State: Two-Letter State Abbreviation
+3. s: sdsd  
+4. fmfle: fowneownefo
+
 
 - X index from 0 to 4.867
 - County County or county equivalent 
@@ -67,14 +86,12 @@ The data set we chose is named "Election, COVID, and Demographic Data by County"
 - Unemployment Unemployment rate (percent)
 
 
+I'll declare our variables (if % or what - and if we turned % in [0, 1]...)...
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
-```
 
 ## Including Plots
 
@@ -98,10 +115,6 @@ library(gRbase)
 library(magick)
 library(ISLR2)
 library(leaps)
-
-data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
-data <- na.omit(data_uncleaned)
-attach(data)
 
 v<-c(data$percentage20_Donald_Trump<0.5)
 regfit.full <- regsubsets(v~., data=data[,-1:-13], really.big = T,nvmax = 38)
