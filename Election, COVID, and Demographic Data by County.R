@@ -112,7 +112,7 @@ usa_election <- left_join(usa, election3) %>%
 
 # First Map
 p<-ggplot(data = usa_election, aes(x = long, y = lat),color = usa_election$Party)+
-  geom_polygon(aes(group = group, fill = okabe),color = "gray90", size = 0.1) +
+  geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) + scale_fill_manual(values = alpha(c("blue2", "red3"), 1))
 p
 
