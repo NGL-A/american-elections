@@ -15,6 +15,7 @@ Once every 4 year one of the most relevant political events in the world takes p
 
 The data set we chose is named "Election, COVID, and Demographic Data by County" and it collects a various amount of information which is related to the 2016 Clinton-Trump and the 2020 Trump-Biden elections. The original file consist of 4.867 observations divided in 51 variables which are:
 
+- X index from 0 to 4.867
 - County County or county equivalent 
 - ID State State, DC, or Puerto Rico 
 - percentage16_Donald_Trump percentage of votes Donald Trump got in 2016
@@ -64,6 +65,8 @@ The data set we chose is named "Election, COVID, and Demographic Data by County"
 - SelfEmployed percent self-employed 
 - FamilyWork percent in unpaid family work 
 - Unemployment Unemployment rate (percent)
+
+
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
