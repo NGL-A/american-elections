@@ -109,15 +109,12 @@ election3<-left_join(election2,abb2)
 usa_election <- left_join(usa, election3) %>% 
   filter(!is.na(Party))
 
-ggplot(usa, aes(x = long, y = lat, group = group)) +
-  geom_polygon(fill="lightgray", colour = "white")
 
 # First Map
 p<-ggplot(data = usa_election, aes(x = long, y = lat),color = usa_election$Party)+
-  geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
-  coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
+  geom_polygon(aes(group = group, fill = okabe),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) + scale_fill_manual(values = alpha(c("blue2", "red3"), 1))
 p
-colnames(data)
 
 
 
@@ -149,20 +146,42 @@ usa_data <- left_join(usa, data3)
 
 
 # First Map
-p<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$TotalPop)+
+po<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$TotalPop)+
   geom_polygon(aes(group = group, fill = TotalPop),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 
 
-p2=p+scale_fill_gradient(names<-"TotalPop", low="White", high = "Black")
+po2=po+scale_fill_gradient(names<-"TotalPop", low="White", high = "deepskyblue4")
 
-p2
-
-
+po2
 
 
+b<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$Black)+
+  geom_polygon(aes(group = group, fill = Black),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
 
 
+b2=b+scale_fill_gradient(names<-"Black", low="White", high = "Black")
+
+b2
+
+h<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$Hispanic)+
+  geom_polygon(aes(group = group, fill = Hispanic),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
+
+
+h2=h+scale_fill_gradient(names<-"Hispanic", low="White", high = "coral3")
+
+h2
+
+a<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$Asian)+
+  geom_polygon(aes(group = group, fill = Asian),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) 
+
+
+a2=a+scale_fill_gradient(names<-"Asian", low="White", high = "darkgoldenrod")
+
+a2
 
 
 
