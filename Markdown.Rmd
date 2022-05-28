@@ -98,6 +98,25 @@ I'll add two new column with the winner of '16, '20 elections in each state.
 Here I think we finished to clean our data.
 
 
+## Maps
+
+```{r, results='hide', warning=FALSE, message= FALSE}
+library(tidyverse)
+library(maps)
+library(png)
+library(grid)
+library(cowplot)
+library(statebins)
+library(DT)
+library(gRbase)
+library(magick)
+library(ISLR2)
+library(leaps)
+
+#Metti mappa
+```
+
+
 
 ```{r, results='hide', warning=FALSE, message= FALSE}
 library(tidyverse)
