@@ -19,7 +19,7 @@ Our project wants to focus on what might affect one's vote: if the geographical 
 We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until 1st November 2020 (few days before the elections).
 
 
-Since it had many NA values (the names of some counties changed name) we started by cleaning our dataset from these.
+Since it had many NA values (some counties changed name) we started by cleaning our dataset from these (we went from 4867 to 3046) and we actually got nearly to the real number of US counties which is 3142.
 
 ```{r, results='hide'}
 data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
@@ -73,23 +73,26 @@ And we also decided which between our 51 variables we didn't need. We deleted [.
 &ensp;&ensp;43. FamilyWork: percent of population in unpaid family work  
 &ensp;&ensp;44. Unemployment: unemployment rate (percent)  
 
-
-I'll declare our variables (if % or what - and if we turned % in [0, 1]...)...
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+Codice in cui tolgo le variabili inutili
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+I'll declare we turned % in [0, 1]...
+
+```{r}
+Cambio le colonne da % a relativo
+```
+
+I'll add two new column with the winner of '16, '20 elections in each state.
+
+```{r}
+Aggiungo colonne
+```
+
+
+Here I think we finished to clean our data.
+
+
 
 ```{r, results='hide', warning=FALSE, message= FALSE}
 library(tidyverse)
