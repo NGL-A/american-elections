@@ -27,6 +27,7 @@ data <- na.omit(data_uncleaned)
 attach(data)
 ```
 
+
 And we also decided which between our 51 variables we didn't need. We deleted [...] columns (because... ?) and maintained:  
 &ensp;&ensp;1. County: county name  
 &ensp;&ensp;2. State: Two-Letter State Abbreviation  
@@ -76,19 +77,23 @@ And we also decided which between our 51 variables we didn't need. We deleted [.
 ```{r}
 #Codice in cui tolgo le variabili inutili
 ```
+&ensp;&ensp;  
 
+  
 I'll declare we turned % in [0, 1]...
 
 ```{r}
 #Cambio le colonne da % a relativo
 ```
+&ensp;&ensp;  
+
 
 I'll add two new column with the winner of '16, '20 elections in each state.
 
 ```{r}
 #Aggiungo colonne
 ```
-
+&ensp;&ensp;  
 
 Here I think we finished to clean our data.
 
