@@ -11,10 +11,46 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Elections, COVID and Demographic Data
 
-Every 4 year one of the most relevant political events in the world takes place: the election of the US President. It is much more than just a day, there are months and months of preparations (campaigns, public speeches, sponsors...).
+Once every 4 year one of the most relevant political events in the world takes place in the United States: the election of the American President. It is much more than just a day: this time consists in months and months of preparations (campaigns, public speeches, sponsors...), from which data scientists are able to collect great quatities of data to be studied and shaped in order to produce statistics.
 
-I'll declare our variables (if % or what - and if we turned % in [0, 1]...)
-Where we found our data
+The data set we chose is named "Election, COVID, and Demographic Data by County" and it collects a various amount of information which is related to the 2016 Clinton-Trump and the 2020 Trump-Biden elections. The original file consist of 4.867 observations divided in 51 variables which are:
+
+- CensusTract Census tract 
+- ID State State, DC, or Puerto Rico 
+- County County or county equivalent 
+- TotalPop Total population 
+- Men Number of men 
+- Women Number of women 
+- Hispanic percent of population that is Hispanic/Latino 
+- White percent of population that is white 
+- Black percent of population that is black 
+- Native percent of population that is Native American or Native Alaskan 
+- Asian percent of population that is Asian 
+- Pacific percent of population that is Native Hawaiian or Pacific Islander 
+- Citizen Number of citizens 
+- Income Median household income 
+- IncomeErr Median household income error 
+- IncomePerCap Income per capita 
+- IncomePerCapErr Income per capita error 
+- Poverty percent under poverty level 
+- ChildPoverty percent of children under poverty level 
+- Professional percent employed in management, business, science, and arts 
+- Service percent employed in service jobs 
+- Office percent employed in sales and office jobs 
+- Construction percent employed in natural resources, construction, and maintenance 
+- Production percent employed in production, transportation, and material movement 
+- Drive percent commuting alone in a car, van, or truck 
+- Carpool percent carpooling in a car, van, or truck 
+- Transit percent commuting on public transportation 
+- Walk percent walking to work OtherTransp percent commuting via other means 
+- WorkAtHome percent working at home 
+- MeanCommute Mean commute time (minutes) 
+- Employed percent employed (16+) 
+- PrivateWork percent employed in private industry 
+- PublicWork percent employed in public jobs 
+- SelfEmployed percent self-employed 
+- FamilyWork percent in unpaid family work 
+- Unemployment Unemployment rate (percent)
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
