@@ -74,19 +74,19 @@ And we also decided which between our 51 variables we didn't need. We deleted [.
 &ensp;&ensp;44. Unemployment: unemployment rate (percent)  
 
 ```{r}
-Codice in cui tolgo le variabili inutili
+#Codice in cui tolgo le variabili inutili
 ```
 
 I'll declare we turned % in [0, 1]...
 
 ```{r}
-Cambio le colonne da % a relativo
+#Cambio le colonne da % a relativo
 ```
 
 I'll add two new column with the winner of '16, '20 elections in each state.
 
 ```{r}
-Aggiungo colonne
+#Aggiungo colonne
 ```
 
 
