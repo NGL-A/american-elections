@@ -28,62 +28,49 @@ attach(data)
 ```
 
 And we also decided which between our 51 variables we didn't need. We deleted [...] columns (because... ?) and maintained:  
-1. County: chchg
-2. State: Two-Letter State Abbreviation
-3. s: sdsd  
-4. fmfle: fowneownefo
-
-
-- X index from 0 to 4.867
-- County County or county equivalent 
-- ID State State, DC, or Puerto Rico 
-- percentage16_Donald_Trump percentage of votes Donald Trump got in 2016
-- percentage16_Hillary_Clinton percentage of votes Hilary CLinton got in 2016
-- total_votes16 total number of votes from 2016
-- votes16_Donald_Trump number of votes Donald Trump got in 2016
-- votes16_Hillary_Clinton number of votes Hilary CLinton got in 2016
-- percentage20_Donald_Trump percentage of votes Donald Trump got in 2020
-- percentage20_Joe_Biden percentage of votes Joe Biden got in 2020
-- total_votes20 total number of votes from 2020
-- votes20_Donald_Trump number of votes Donald Trump got in 2020
-- votes20_Joe_Biden number of votes Joe Biden got in 2020
-- lat latitude coordinates
-- long longitude coordinates
-- cases Covid19 cases
-- deaths Covid19 deaths
-- TotalPop Total population 
-- Men number of men 
-- Women number of women 
-- Hispanic percent of population that is Hispanic/Latino 
-- White percent of population that is white 
-- Black percent of population that is black 
-- Native percent of population that is Native American or Native Alaskan 
-- Asian percent of population that is Asian 
-- Pacific percent of population that is Native Hawaiian or Pacific Islander 
-- VotingAgeeCitizen number of citizens above voting age
-- Income Median household income 
-- IncomeErr Median household income error 
-- IncomePerCap Income per capita 
-- IncomePerCapErr Income per capita error 
-- Poverty percent under poverty level 
-- ChildPoverty percent of children under poverty level 
-- Professional percent employed in management, business, science, and arts 
-- Service percent employed in service jobs 
-- Office percent employed in sales and office jobs 
-- Construction percent employed in natural resources, construction, and maintenance 
-- Production percent employed in production, transportation, and material movement 
-- Drive percent commuting alone in a car, van, or truck 
-- Carpool percent carpooling in a car, van, or truck 
-- Transit percent commuting on public transportation 
-- Walk percent walking to work OtherTransp percent commuting via other means 
-- WorkAtHome percent working at home 
-- MeanCommute Mean commute time (minutes) 
-- Employed percent employed (16+) 
-- PrivateWork percent employed in private industry 
-- PublicWork percent employed in public jobs 
-- SelfEmployed percent self-employed 
-- FamilyWork percent in unpaid family work 
-- Unemployment Unemployment rate (percent)
+1. County: county name  
+2. State: Two-Letter State Abbreviation  
+3. percentage16_Donald_Trump: percentage of votes Donald Trump got in 2016  
+4. percentage16_Hillary_Clinton: percentage of votes Hilary CLinton got in 2016  
+5. total_votes16: total number of votes in 2016  
+6. votes16_Donald_Trump: number of votes Donald Trump got in 2016  
+7. votes16_Hillary_Clinton: number of votes Hilary Clinton got in 2016  
+8. percentage20_Donald_Trump: percentage of votes Donald Trump got in 2020  
+9. percentage20_Joe_Biden: percentage of votes Joe Biden got in 2020  
+10. total_votes20: total number of votes in 2020  
+11. votes20_Donald_Trump: number of votes Donald Trump got in 2020  
+12. votes20_Joe_Biden: number of votes Joe Biden got in 2020  
+13. lat: latitude coordinates  
+14. long: longitude coordinates  
+15. cases: COVID-19 cases  
+16. deaths: COVID-19 deaths  
+17. TotalPop: Total population  
+18. Men: number of men  
+19. Women: number of women  
+20. Hispanic: percent of population that is Hispanic/Latino  
+21. White: percent of population that is white  
+22. Black: percent of population that is black  
+23. Native: percent of population that is Native American or Native Alaskan  
+24. Asian: percent of population that is Asian  
+25. Pacific: percent of population that is Native Hawaiian or Pacific Islander  
+26. VotingAgeCitizen: number of citizens above voting age  
+27. Income: median household income  
+28. IncomeErr: median household income error  
+29. IncomePerCap: income per capita  
+30. IncomePerCapErr: income per capita error  
+31. Poverty: percent of population under poverty level  
+32. Professional: percent of population employed in management, business, science and arts  
+33. Service: percent of population employed in service jobs  
+34. Office: percent of population employed in sales and office jobs  
+35. Construction: percent of population employed in natural resources, construction and maintenance  
+36. Production: percent of population employed in production, transportation and material movement  
+37. WorkAtHome: percent of population working at home  
+38. Employed: percent of population employed (16+)  
+39. PrivateWork: percent of population employed in private industry  
+40. PublicWork: percent of population employed in public jobs  
+41. SelfEmployed: percent of population self-employed  
+42. FamilyWork: percent of population in unpaid family work  
+43. Unemployment: unemployment rate (percent)  
 
 
 I'll declare our variables (if % or what - and if we turned % in [0, 1]...)...
