@@ -70,138 +70,127 @@ par(mfrow=c(1,1))
 
 
 
-
 options(repr.plot.width = 17, repr.plot.height = 9)
 
-# US MAP 
-usa <- map_data("state")
+prov.usa <- map_data("state")
 
-abb <- data.frame(state = state.name, Abb = state.abb)
-abb2<-abb
-abb2$state<-tolower(abb2$state)
-# TOTAL VOTES
-election <- data %>% 
+prov.abb <- data.frame(state = state.name, Abb = state.abb)
+
+prov.abb2<-prov.abb
+
+prov.abb2$state<-tolower(prov.abb2$state)
+
+prov.election <- data %>% 
   group_by(state) %>% 
   summarise(votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
             votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
   ungroup() %>% 
   gather(Candidate, Votes, -state) %>% 
   mutate(Party = factor(if_else(Candidate == "votes16_Hillary_Clinton", "Democrat", "Republican"))) %>% 
-  left_join(abb2) %>% 
-  #mutate(state = tolower(state)) %>% 
+  left_join(prov.abb2) %>% 
   rename("region" = state)
 
-election2 <- election %>% 
+prov.election2 <- prov.election %>% 
   group_by(region, Abb) %>% 
   summarise(Votes = max(Votes)) %>% 
   ungroup() %>% 
-  inner_join(election)
+  inner_join(prov.election)
 
+prov.election2<-prov.election2[,-2]
 
+colnames(prov.abb2)[1]<-"region"
 
+colnames(prov.election2)[1]<-"Abb"
 
-election2<-election2[,-2]
+prov.election3<-left_join(prov.election2,prov.abb2)
 
-colnames(abb2)[1]<-"region"
-colnames(election2)[1]<-"Abb"
-election3<-left_join(election2,abb2)
-# Left Join for creating map
-usa_election <- left_join(usa, election3) %>% 
+prov.usa_election <- left_join(prov.usa, prov.election3) %>% 
   filter(!is.na(Party))
 
-
-# First Map
-p<-ggplot(data = usa_election, aes(x = long, y = lat),color = usa_election$Party)+
+map.us.16<-ggplot(data = prov.usa_election, aes(x = long, y = lat),color = prov.usa_election$Party)+
   geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) + scale_fill_manual(values = alpha(c("blue2", "red3"), 1))
-p
 
+prov.abb <- data.frame(state = state.name, Abb = state.abb)
 
-abb <- data.frame(state = state.name, Abb = state.abb)
-abb2<-abb
-abb2$state<-tolower(abb2$state)
-election2020 <- data %>% 
+prov.abb2<-prov.abb
+
+prov.abb2$state<-tolower(prov.abb2$state)
+
+prov.election2020 <- data %>% 
   group_by(state) %>% 
   summarise(votes20_Joe_Biden = sum(votes20_Joe_Biden),
             votes20_Donald_Trump = sum(votes20_Donald_Trump)) %>% 
   ungroup() %>% 
   gather(Candidate, Votes, -state) %>% 
   mutate(Party = factor(if_else(Candidate == "votes20_Joe_Biden", "Democrat", "Republican"))) %>% 
-  left_join(abb2) %>% 
-  #mutate(state = tolower(state)) %>% 
+  left_join(prov.abb2) %>% 
   rename("region" = state)
 
-election22020 <- election2020 %>% 
+prov.election20202 <- prov.election2020 %>% 
   group_by(region, Abb) %>% 
   summarise(Votes = max(Votes)) %>% 
   ungroup() %>% 
-  inner_join(election2020)
+  inner_join(prov.election2020)
 
+prov.election20202<-prov.election20202[,-2]
 
+colnames(prov.abb2)[1]<-"region"
 
+colnames(prov.election20202)[1]<-"Abb"
 
-election22020<-election22020[,-2]
+prov.election20203<-left_join(prov.election20202,prov.abb2)
 
-colnames(abb2)[1]<-"region"
-colnames(election22020)[1]<-"Abb"
-election32020<-left_join(election22020,abb2)
-# Left Join for creating map
-usa_election2020 <- left_join(usa, election32020) %>% 
+prov.usa_election2020 <- left_join(prov.usa, prov.election20203) %>% 
   filter(!is.na(Party))
 
-
-# First Map
-p2020<-ggplot(data = usa_election2020, aes(x = long, y = lat),color = usa_election2020$Party)+
+map.us.20<-ggplot(data = prov.usa_election2020, aes(x = long, y = lat),color = prov.usa_election2020$Party)+
   geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) + scale_fill_manual(values = alpha(c("blue2", "red3"), 1))
-p2020
 
-
-
-
-data2 <- data %>% 
+prov.data2 <- data %>% 
   group_by(state) %>% 
   summarise(TotalPop = sum(TotalPop),
             Black = mean(Black),Hispanic=mean(Hispanic),Asian=mean(Asian),votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
             votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
   ungroup() %>% 
-  #gather(Candidate, Votes, -state) %>% 
-  #mutate(Party = factor(if_else(Candidate == "votes16_Hillary_Clinton", "Democrat", "Republican"))) %>% 
-  #mutate(state = tolower(state)) %>% 
   rename("region" = state)
 
-colnames(abb2)[1]<-"Abb"
-colnames(abb2)[2]<-"region"
-data3<-left_join(data2,abb2)
+colnames(prov.abb2)[1]<-"Abb"
 
-colnames(data3)[1]<-"Abb"
-colnames(data3)[8]<-"region"
-# Left Join for creating map
-usa_data <- left_join(usa, data3) 
+colnames(prov.abb2)[2]<-"region"
 
+prov.data3<-left_join(prov.data2,prov.abb2)
 
-# First Map
-po<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$TotalPop)+
+colnames(prov.data3)[1]<-"Abb"
+
+colnames(prov.data3)[8]<-"region"
+
+prov.usa_data <- left_join(prov.usa, prov.data3) 
+
+map.pop<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$TotalPop)+
   geom_polygon(aes(group = group, fill = TotalPop),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"TotalPop", low="White", high = "deepskyblue4")
-po
 
-
-b<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$Black)+
+map.black<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Black)+
   geom_polygon(aes(group = group, fill = Black),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Black", low="White", high = "Black")
-b
 
-h<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$Hispanic)+
+map.hisp<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Hispanic)+
   geom_polygon(aes(group = group, fill = Hispanic),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Hispanic", low="White", high = "coral3")
-h
 
-
-a<-ggplot(data = usa_data, aes(x = long, y = lat),color = usa_data$Asian)+
+map.asian<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Asian)+
   geom_polygon(aes(group = group, fill = Asian),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Asian", low="White", high = "darkgoldenrod")
-a
+
+map.us.16
+map.us.20
+map.pop
+map.black
+map.hisp
+map.asian
+
 
 
 
