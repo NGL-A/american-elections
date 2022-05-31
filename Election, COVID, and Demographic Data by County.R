@@ -245,4 +245,25 @@ lm(percentage20_Joe_Biden~.,data[,4:51],subset = train)
 predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
 
 
+# use cross-validation to choose the value of lambda 
+
+cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0, nfold=10)
+
+cv.out$lambda[1:10]
+summary(cv.out$lambda)
+
+plot(cv.out)
+i.bestlam <- which.min(cv.out$cvm)
+i.bestlam 
+bestlam <- cv.out$lambda[i.bestlam]
+bestlam
+cv.out$cvm[i.bestlam]
+
+min(cv.out$cvm)
+
+bestlam <- cv.out$lambda.min
+bestlam
+ridge.pred <- predict(ridge.mod, s = bestlam,
+                      newx = X[test, ])
+mean((ridge.pred - y.test)^2)
 
