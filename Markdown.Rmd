@@ -22,22 +22,45 @@ We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-g
 Since it had many NA values (some counties changed name) we started by cleaning our dataset from these (we went from 4867 to 3046) and we actually got nearly to the real number of US counties which is 3142.
 
 ```{r, results='hide'}
+library(tidyverse)
+library(corrplot)
+library(maps)
+library(png)
+library(grid)
+library(cowplot)
+library(statebins)
+library(DT)
+library(gRbase)
+library(magick)
+library(ISLR2)
+library(leaps)
+library(corrplot)
+
 data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
 data <- na.omit(data_uncleaned)
 attach(data)
 ```
 
-And we also decided though a correlation matrix which between our 51 variables we didn't need. 
+
+We also decided to remove the variables which weren't related with the others through a correlation matrix.
 
 ```{r, results='hide', warning=FALSE, message= FALSE}
-cov<-cov(data[,4:51])
-corr<-cov2cor(cov)
-library(corrplot)
-corrplot(corr)
+names(data)[names(data) == "percentage16_Donald_Trump"] <- "pTrump16"
+names(data)[names(data) == "percentage16_Hillary_Clinton"] <- "pClinton16"
+names(data)[names(data) == "percentage20_Donald_Trump"] <- "pTrump20"
+names(data)[names(data) == "percentage20_Joe_Biden"] <- "pBiden20"
+names(data)[names(data) == "votes16_Donald_Trump"] <- "Trump16"
+names(data)[names(data) == "votes16_Hillary_Clinton"] <- "Clinton16"
+names(data)[names(data) == "votes20_Donald_Trump"] <- "Trump20"
+names(data)[names(data) == "votes20_Joe_Biden"] <- "Biden20"
+cor <- cor(data[,3:51])
+corrplot(cor)
+
+#cambio momentaneo di nomi lunghi percentage in per/%
 ```
 
-We deleted [...] columns (because [...]) and maintained:  
-&ensp;&ensp;1. County: county name
+
+We discovered that columns about transport (...), type of work (...) and some others (...) weren't relevant for our project or they almost had the same behavior (e.g. Poverty and ChildPoverty) of other variables so we decided to maintain these:  
 &ensp;&ensp;1. County: county name  
 &ensp;&ensp;2. State: Two-Letter State Abbreviation  
 &ensp;&ensp;3. percentage16_Donald_Trump: percentage of votes Donald Trump got in 2016  
@@ -65,26 +88,23 @@ We deleted [...] columns (because [...]) and maintained:
 &ensp;&ensp;25. Pacific: percent of population that is Native Hawaiian or Pacific Islander  
 &ensp;&ensp;26. VotingAgeCitizen: number of citizens above voting age  
 &ensp;&ensp;27. Income: median household income  
-&ensp;&ensp;28. IncomeErr: median household income error  
-&ensp;&ensp;29. IncomePerCap: income per capita  
-&ensp;&ensp;30. IncomePerCapErr: income per capita error  
-&ensp;&ensp;31. Poverty: percent of population under poverty level  
-&ensp;&ensp;32. ChildPoverty percent of children under poverty level  
-&ensp;&ensp;33. Professional: percent of population employed in management, business, science and arts  
-&ensp;&ensp;34. Service: percent of population employed in service jobs  
-&ensp;&ensp;35. Office: percent of population employed in sales and office jobs  
-&ensp;&ensp;36. Construction: percent of population employed in natural resources, construction and maintenance  
-&ensp;&ensp;37. Production: percent of population employed in production, transportation and material movement  
-&ensp;&ensp;38. WorkAtHome: percent of population working at home  
-&ensp;&ensp;39. Employed: percent of population employed (16+)  
-&ensp;&ensp;40. PrivateWork: percent of population employed in private industry  
-&ensp;&ensp;41. PublicWork: percent of population employed in public jobs  
-&ensp;&ensp;42. SelfEmployed: percent of population self-employed  
-&ensp;&ensp;43. FamilyWork: percent of population in unpaid family work  
-&ensp;&ensp;44. Unemployment: unemployment rate (percent)  
+&ensp;&ensp;28. IncomePerCap: income per capita  
+&ensp;&ensp;29. Poverty: percent of population under poverty level  
+&ensp;&ensp;30. Professional: percent of population employed in management, business, science and arts  
+&ensp;&ensp;31. Service: percent of population employed in service jobs  
+&ensp;&ensp;32. Office: percent of population employed in sales and office jobs  
+&ensp;&ensp;33. Construction: percent of population employed in natural resources, construction and maintenance  
+&ensp;&ensp;34. Production: percent of population employed in production, transportation and material movement  
+&ensp;&ensp;35. Employed: percent of population employed (16+)  
+&ensp;&ensp;36. PrivateWork: percent of population employed in private industry  
+&ensp;&ensp;37. PublicWork: percent of population employed in public jobs  
+&ensp;&ensp;38. SelfEmployed: percent of population self-employed  
+&ensp;&ensp;39. FamilyWork: percent of population in unpaid family work  
+&ensp;&ensp;40. Unemployment: unemployment rate (percent)  
 
 ```{r}
-#Codice in cui tolgo le variabili inutili
+df <- data[-c(1,29,31,33,39:45)]
+
 ```
 &ensp;&ensp;  
 
@@ -92,7 +112,7 @@ We deleted [...] columns (because [...]) and maintained:
 I'll declare we turned % in [0, 1]...
 
 ```{r}
-#Cambio le colonne da % a relativo
+df[, c(20:25,29:34,36:40)] <- (df[, c(20:25,29:34,36:40)]/100)
 ```
 &ensp;&ensp;  
 
