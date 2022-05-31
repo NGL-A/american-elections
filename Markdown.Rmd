@@ -27,8 +27,17 @@ data <- na.omit(data_uncleaned)
 attach(data)
 ```
 
+And we also decided though a correlation matrix which between our 51 variables we didn't need. 
 
-And we also decided which between our 51 variables we didn't need. We deleted [...] columns (because... ?) and maintained:  
+```{r, results='hide', warning=FALSE, message= FALSE}
+cov<-cov(data[,4:51])
+corr<-cov2cor(cov)
+library(corrplot)
+corrplot(corr)
+```
+
+We deleted [...] columns (because [...]) and maintained:  
+&ensp;&ensp;1. County: county name
 &ensp;&ensp;1. County: county name  
 &ensp;&ensp;2. State: Two-Letter State Abbreviation  
 &ensp;&ensp;3. percentage16_Donald_Trump: percentage of votes Donald Trump got in 2016  
