@@ -231,7 +231,7 @@ X<-X[,-1]
 y<-percentage20_Joe_Biden
 grid<-10^seq(10,-1,length=100)
 ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid)
-plot(ridge.mod)
+plot(ridge.mod, xvar="lambda")
 
 
 train <- sample(1:nrow(X),nrow(X)/2)
