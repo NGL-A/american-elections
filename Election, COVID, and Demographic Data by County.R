@@ -240,15 +240,12 @@ map.unemp
 
 
 
+ggplot(data,aes(x=log(data$TotalPop), group=Party20,fill=Party20))+
+  geom_histogram(position="identity",alpha=0.5,binwidth=0.4)+theme_bw()
 
-plot(Hispanic)
-hist(Income[percentage20_Donald_Trump>0.5])
-hist(Income[percentage20_Donald_Trump<0.5])
+ggplot(data,aes(x=log(data$cases), group=Party20,fill=Party20))+
+  geom_histogram(position="identity",alpha=0.5,binwidth=0.4)+theme_bw()
 
-q=c(percentage20_Joe_Biden>0.5)
-
-ggplot(data,aes(x=data$Asian, group=q,fill=q))+
-  geom_histogram(position="identity",alpha=0.5,binwidth=1)+theme_bw()
 
 #covariance and correlation
 S<-cov(data[,4:51])
