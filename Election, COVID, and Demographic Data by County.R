@@ -93,7 +93,6 @@ par(mfrow=c(1,1))
 
 
 
-
 options(repr.plot.width = 17, repr.plot.height = 9)
 
 prov.usa <- map_data("state")
@@ -177,6 +176,7 @@ prov.data2 <- data %>%
   summarise(Black = sum(Black*TotalPop),
             Hispanic=sum(Hispanic*TotalPop),
             Asian=sum(Asian*TotalPop),
+            Unemployment = sum(Unemployment*TotalPop),
             votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
             votes16_Donald_Trump = sum(votes16_Donald_Trump),
             TotalPop = sum(TotalPop)) %>% 
@@ -189,6 +189,8 @@ prov.data2$Hispanic<- prov.data2$Hispanic/prov.data2$TotalPop
 
 prov.data2$Asian<- prov.data2$Asian/prov.data2$TotalPop
 
+prov.data2$Unemployment<- prov.data2$Unemployment/prov.data2$TotalPop
+
 colnames(prov.abb2)[1]<-"Abb"
 
 colnames(prov.abb2)[2]<-"region"
@@ -197,7 +199,7 @@ prov.data3<-left_join(prov.data2,prov.abb2)
 
 colnames(prov.data3)[1]<-"Abb"
 
-colnames(prov.data3)[8]<-"region"
+colnames(prov.data3)[9]<-"region"
 
 prov.usa_data <- left_join(prov.usa, prov.data3) 
 
@@ -217,6 +219,11 @@ map.asian<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_
   geom_polygon(aes(group = group, fill = Asian),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Asian", low="White", high = "darkgoldenrod")
 
+map.unemp<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Unemployment)+
+  geom_polygon(aes(group = group, fill = Unemployment),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Unemployment", low="White", high = "brown")
+
+
 map.us.16
 
 map.us.20
@@ -228,6 +235,8 @@ map.black
 map.hisp
 
 map.asian
+
+map.unemp
 
 
 
