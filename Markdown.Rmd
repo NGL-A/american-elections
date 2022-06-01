@@ -25,6 +25,7 @@ Since it had many NA values (some counties changed name) we started by cleaning 
 library(tidyverse)
 library(corrplot)
 library(maps)
+library(mapproj)
 library(png)
 library(grid)
 library(cowplot)
@@ -40,19 +41,28 @@ data <- na.omit(data_uncleaned)
 attach(data)
 ```
 
+We added columns who won [...]
 
-We also decided to remove the variables which weren't related with the others through a correlation matrix.
+```{r, results='hide'}
+data$Party16 = factor(if_else(percentage16_Hillary_Clinton >= percentage16_Donald_Trump, "Democrat", "Republican"))
+
+data$Party20 = factor(if_else(percentage20_Joe_Biden >= percentage20_Donald_Trump, "Democrat", "Republican"))
+```
+
+
+We also decided to remove the variables which weren't related with the others through a correlation matrix. (nota a piè di pagina - we changed column [...] into [...] to obtain a clearer plot...)
 
 ```{r, results='hide', warning=FALSE, message= FALSE}
-names(data)[names(data) == "percentage16_Donald_Trump"] <- "pTrump16"
-names(data)[names(data) == "percentage16_Hillary_Clinton"] <- "pClinton16"
-names(data)[names(data) == "percentage20_Donald_Trump"] <- "pTrump20"
-names(data)[names(data) == "percentage20_Joe_Biden"] <- "pBiden20"
-names(data)[names(data) == "votes16_Donald_Trump"] <- "Trump16"
-names(data)[names(data) == "votes16_Hillary_Clinton"] <- "Clinton16"
-names(data)[names(data) == "votes20_Donald_Trump"] <- "Trump20"
-names(data)[names(data) == "votes20_Joe_Biden"] <- "Biden20"
-cor <- cor(data[4:51])
+data.corr <- data
+names(data.corr)[names(data.corr) == "percentage16_Donald_Trump"] <- "pTrump16"
+names(data.corr)[names(data.corr) == "percentage16_Hillary_Clinton"] <- "pClinton16"
+names(data.corr)[names(data.corr) == "percentage20_Donald_Trump"] <- "pTrump20"
+names(data.corr)[names(data.corr) == "percentage20_Joe_Biden"] <- "pBiden20"
+names(data.corr)[names(data.corr) == "votes16_Donald_Trump"] <- "Trump16"
+names(data.corr)[names(data.corr) == "votes16_Hillary_Clinton"] <- "Clinton16"
+names(data.corr)[names(data.corr) == "votes20_Donald_Trump"] <- "Trump20"
+names(data.corr)[names(data.corr) == "votes20_Joe_Biden"] <- "Biden20"
+cor <- cor(data.corr[4:51])
 corrplot(cor, type = 'upper', tl.cex = 0.5)
 ```
 
@@ -104,7 +114,7 @@ df <- data[-c(1,19:20,27,29,31,33,39:46)]
 I'll declare we turned % in [0, 1]...
 
 ```{r}
-df[, c(20:25,29:34,36:40)] <- (df[, c(20:25,29:34,36:40)]/100)
+df[,c(18:23,26:36)] <- (df[,c(18:23,26:36)]/100)
 ```
 &ensp;&ensp;  
 
@@ -120,9 +130,8 @@ I'll add two new column with the winner of '16, '20 elections in each state.
 Here I think we finished to clean our data.
 
 
----------------------------------------MAPS-------------------------------------------
-
-
+--------------------------------------MAPS--------------------------------------
+```{r, results='hide', warning=FALSE, message= FALSE}
 options(repr.plot.width = 17, repr.plot.height = 9)
 
 prov.usa <- map_data("state")
@@ -203,11 +212,20 @@ map.us.20<-ggplot(data = prov.usa_election2020, aes(x = long, y = lat),color = p
 
 prov.data2 <- data %>% 
   group_by(state) %>% 
-  summarise(TotalPop = sum(TotalPop),
-            Black = mean(Black),Hispanic=mean(Hispanic),Asian=mean(Asian),votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
-            votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
+  summarise(Black = sum(Black*TotalPop),
+            Hispanic=sum(Hispanic*TotalPop),
+            Asian=sum(Asian*TotalPop),
+            votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
+            votes16_Donald_Trump = sum(votes16_Donald_Trump),
+            TotalPop = sum(TotalPop)) %>% 
   ungroup() %>% 
   rename("region" = state)
+
+prov.data2$Black<- prov.data2$Black/prov.data2$TotalPop
+
+prov.data2$Hispanic<- prov.data2$Hispanic/prov.data2$TotalPop
+
+prov.data2$Asian<- prov.data2$Asian/prov.data2$TotalPop
 
 colnames(prov.abb2)[1]<-"Abb"
 
@@ -238,8 +256,14 @@ map.asian<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Asian", low="White", high = "darkgoldenrod")
 
 map.us.16
+
 map.us.20
+
 map.pop
+
 map.black
+
 map.hisp
+
 map.asian
+```
