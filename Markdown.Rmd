@@ -15,27 +15,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Every 4 year one of the most relevant political events in the world takes place: the election of the US President. After months, even years, of preparations (campaigns, public speeches, sponsors...) the eyes of the entire world are looking to the results of those elections, to the one who will be leading the "free world" in the near future.
 
-Our project wants to focus on what might affect one's vote: if the geographical area is relevant, if the type of work can change the preference, if one ethnicity is more likely to vote a Party over the other and if there is any strong correlation between the variables.  
+Our project wants to focus on what might affect citizens vote: if the geographical area is relevant, if the type of work can change the preference, if one ethnicity is more likely to vote a Party over the other and if there is any strong correlation between the variables.  
 We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until 1st November 2020 (few days before the elections).
 
 
 Since it had many NA values (some counties changed name) we started by cleaning our dataset from these (we went from 4867 to 3046) and we actually got nearly to the real number of US counties which is 3142.
 
-```{r, results='hide', message=FALSE}
-library(tidyverse)
-library(corrplot)
-library(maps)
-library(mapproj)
-library(png)
-library(grid)
-library(cowplot)
-library(statebins)
-library(DT)
-library(magick)
-library(ISLR2)
-library(leaps)
-library(corrplot)
-
+```{r, results='hide'}
 data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
 data <- na.omit(data_uncleaned)
 attach(data)
@@ -43,9 +29,12 @@ attach(data)
 
 We added columns who won [...]
 
-```{r, results='hide'}
+```{r, results='hide', message=FALSE}
+library(tidyverse)
+library(corrplot)
+library(maps)
+library(mapproj)
 data$Party16 = factor(if_else(percentage16_Hillary_Clinton >= percentage16_Donald_Trump, "Democrat", "Republican"))
-
 data$Party20 = factor(if_else(percentage20_Joe_Biden >= percentage20_Donald_Trump, "Democrat", "Republican"))
 ```
 
@@ -70,16 +59,16 @@ corrplot(cor, type = 'upper', tl.cex = 0.5)
 We discovered that columns about transport (Drive, Carpool, Transit, Walk, Other Transp, WorkAtHome,MeanCommute), type of work (...) and some others (...) weren't relevant for our project or that they were linearly dependent with other variables (e.g. Poverty and ChildPoverty or Man, Women and TotalPop) so we decided to maintain these:  
 &ensp;&ensp;1. County: county name  
 &ensp;&ensp;2. State: Two-Letter State Abbreviation  
-&ensp;&ensp;3. pTrump16: percentage of votes Donald Trump got in 2016  
-&ensp;&ensp;4. pClinton16: percentage of votes Hilary Clinton got in 2016  
+&ensp;&ensp;3. percentage16_Donald_Trump: percentage of votes Donald Trump got in 2016  
+&ensp;&ensp;4. percentage16_Hillary_Clinton: percentage of votes Hilary Clinton got in 2016  
 &ensp;&ensp;5. total_votes16: total number of votes in 2016  
-&ensp;&ensp;6. Trump16: number of votes Donald Trump got in 2016  
-&ensp;&ensp;7. Clinton16: number of votes Hilary Clinton got in 2016  
-&ensp;&ensp;8. pTrump20: percentage of votes Donald Trump got in 2020  
-&ensp;&ensp;9. pBiden20: percentage of votes Joe Biden got in 2020  
+&ensp;&ensp;6. votes16_Donald_Trump: number of votes Donald Trump got in 2016  
+&ensp;&ensp;7. votes16_Hillary_Clinton: number of votes Hilary Clinton got in 2016  
+&ensp;&ensp;8. percentage20_Donald_Trump: percentage of votes Donald Trump got in 2020  
+&ensp;&ensp;9. percentage20_Joe_Biden: percentage of votes Joe Biden got in 2020  
 &ensp;&ensp;10. total_votes20: total number of votes in 2020  
-&ensp;&ensp;11. Trump20: number of votes Donald Trump got in 2020  
-&ensp;&ensp;12. Biden20: number of votes Joe Biden got in 2020  
+&ensp;&ensp;11. votes20_Donald_Trump: number of votes Donald Trump got in 2020  
+&ensp;&ensp;12. votes20_Joe_Biden: number of votes Joe Biden got in 2020  
 &ensp;&ensp;13. lat: latitude coordinates  
 &ensp;&ensp;14. long: longitude coordinates  
 &ensp;&ensp;15. cases: COVID-19 cases  
