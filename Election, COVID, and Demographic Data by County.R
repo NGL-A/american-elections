@@ -150,11 +150,20 @@ map.us.20<-ggplot(data = prov.usa_election2020, aes(x = long, y = lat),color = p
 
 prov.data2 <- data %>% 
   group_by(state) %>% 
-  summarise(TotalPop = sum(TotalPop),
-            Black = mean(Black),Hispanic=mean(Hispanic),Asian=mean(Asian),votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
-            votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
+  summarise(Black = sum(Black*TotalPop),
+            Hispanic=sum(Hispanic*TotalPop),
+            Asian=sum(Asian*TotalPop),
+            votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
+            votes16_Donald_Trump = sum(votes16_Donald_Trump),
+            TotalPop = sum(TotalPop)) %>% 
   ungroup() %>% 
   rename("region" = state)
+
+prov.data2$Black<- prov.data2$Black/prov.data2$TotalPop
+
+prov.data2$Hispanic<- prov.data2$Hispanic/prov.data2$TotalPop
+
+prov.data2$Asian<- prov.data2$Asian/prov.data2$TotalPop
 
 colnames(prov.abb2)[1]<-"Abb"
 
