@@ -26,8 +26,16 @@ data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
 data <- na.omit(data_uncleaned)
 attach(data)
 ```
+&ensp;&ensp;  
 
-To have a cleare added two new columns with each county winner Party in 2016 and 2020 elections.
+Since data from Census 2017 are in percentage we decided to turn them into relative numbers, like Election ones.
+
+```{r}
+data[,c(21:26,32:45,47:51)] <- (data[,c(21:26,32:45,47:51)]/100)
+```
+&ensp;&ensp;  
+
+We added two new columns with each county winner Party in 2016 and 2020 elections.
 
 
 ```{r, results='hide', message=FALSE}
@@ -38,9 +46,9 @@ library(mapproj)
 data$Party16 = factor(if_else(percentage16_Hillary_Clinton >= percentage16_Donald_Trump, "Democrat", "Republican"))
 data$Party20 = factor(if_else(percentage20_Joe_Biden >= percentage20_Donald_Trump, "Democrat", "Republican"))
 ```
+&ensp;&ensp;  
 
-
-We also decided to remove the variables which weren't related with the others through a correlation matrix. (nota a piè di pagina - we changed column [...] into [...] to obtain a clearer plot...)
+We also decided to remove the variables which were deeply related with others using a correlation matrix^[we changed columns "percentageXX_Candidate" into "pCandidateXX" and "votesXX_Candidate" into "CandidateXX" to obtain a clearer plot.].
 
 ```{r, results='hide', warning=FALSE, message= FALSE}
 data.corr <- data
@@ -56,8 +64,14 @@ cor <- cor(data.corr[4:51])
 corrplot(cor, type = 'upper', tl.cex = 0.5)
 ```
 
+We discovered that the gender doesn't affect any of the variables and that "ChildPoverty" behave like "Poverty", so we kept only the latter; while we chose "TotalPop" to represent "Men" and "Women", but also "Emplyed" and "VotingAgeCitizen". "IncomeErr" and "IncomePerCapErr" were grouped rispectively with their counterpart "Income" and "IncomePerCap".
 
-We discovered that columns about transport (Drive, Carpool, Transit, Walk, Other Transp, WorkAtHome,MeanCommute), type of work (...) and some others (...) weren't relevant for our project or that they were linearly dependent with other variables (e.g. Poverty and ChildPoverty or Man, Women and TotalPop) so we decided to maintain these:  
+```{r, results='hide', warning=FALSE, message= FALSE}
+#regression_here
+```
+&ensp;&ensp;  
+
+#We discovered that columns about transport (Drive, Carpool, Transit, Walk, Other Transp, WorkAtHome,MeanCommute) weren't relevant for our project / they were linearly dependent with other variables so we decided to maintain these:  
 &ensp;&ensp;1. County: county name  
 &ensp;&ensp;2. State: Two-Letter State Abbreviation  
 &ensp;&ensp;3. percentage16_Donald_Trump: percentage of votes Donald Trump got in 2016  
@@ -100,13 +114,7 @@ df <- data[-c(1,19:20,27,29,31,33,39:46)]
 ```
 &ensp;&ensp;  
 
-  
-I'll declare we turned % in [0, 1]...
 
-```{r}
-df[,c(18:23,26:36)] <- (df[,c(18:23,26:36)]/100)
-```
-&ensp;&ensp;  
 
 Here I think we finished to clean our data.
 
