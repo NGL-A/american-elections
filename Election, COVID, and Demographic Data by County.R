@@ -9,56 +9,75 @@ data$Party20 = factor(if_else(percentage20_Joe_Biden >= percentage20_Donald_Trum
 attach(data)
 
 rownames(data) <- 1:nrow(data)
+
 plot(percentage20_Donald_Trump, Hispanic)
+
 hist(lat, freq = FALSE)
+
 lines(density(na.omit(lat[votes20_Donald_Trump])))
 
 library(tidyverse)
 library(maps)
-#install.packages("mapproj")
 library(png)
 library(grid)
 library(cowplot)
 library(statebins)
 library(DT)
-
-
 library(gRbase)
 library(ISLR2)
 library(leaps)
+library(corrplot)
+library(glmnet)
+
 
 v<-c(data$percentage20_Donald_Trump<0.5)
-regfit.full <- regsubsets(v~., data=data[,-1:-13], really.big = T,nvmax = 38)
-reg.summary <- summary(regfit.full)
-reg.summary$outmat
-reg.summary$rsq
-par(mfrow=c(2,2))
-plot(reg.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
-plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
-which.max(reg.summary$adjr2)
-points(11,reg.summary$adjr2[11], col="red",cex=2,pch=20)
 
+regfit.full <- regsubsets(v~., data=data[,-1:-13], really.big = T,nvmax = 38)
+
+reg.summary <- summary(regfit.full)
+
+reg.summary$outmat
+
+reg.summary$rsq
+
+par(mfrow=c(2,2))
+
+plot(reg.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
+
+plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
+
+which.max(reg.summary$adjr2)
+
+points(11,reg.summary$adjr2[11], col="red",cex=2,pch=20)
 
 # Mallow's Cp with its smallest value
 plot(reg.summary$cp,xlab="Number of Variables",ylab="Cp",type='l')
+
 which.min(reg.summary$cp)
+
 points(10,reg.summary$cp[10],col="red",cex=2,pch=20)
 
 # BIC with its smallest value
 plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
+
 which.min(reg.summary$bic)
+
 points(6,reg.summary$bic[6],col="red",cex=2,pch=20)
 
 par(mfrow=c(1,1))
 
-
 par(mfrow=c(2,2))
+
 plot(regfit.full,scale="r2")
+
 plot(regfit.full,scale="adjr2")
+
 plot(regfit.full,scale="Cp")
 
 plot(regfit.full,scale="bic")
+
 coef(regfit.full,6)
+
 par(mfrow=c(1,1))
 
 
@@ -199,10 +218,15 @@ map.asian<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Asian", low="White", high = "darkgoldenrod")
 
 map.us.16
+
 map.us.20
+
 map.pop
+
 map.black
+
 map.hisp
+
 map.asian
 
 
@@ -217,18 +241,15 @@ q=c(percentage20_Joe_Biden>0.5)
 ggplot(data,aes(x=data$Asian, group=q,fill=q))+
   geom_histogram(position="identity",alpha=0.5,binwidth=1)+theme_bw()
 
-
+#covariance and correlation
 S<-cov(data[,4:51])
+
 P<-cov2cor(S)
-
-
-library(corrplot)
 
 corrplot(P)
 
 
-library(glmnet)
-
+#ridge regression
 X <- model.matrix(percentage20_Joe_Biden~.,data)
 X<-X[,-1]
 y<-percentage20_Joe_Biden
