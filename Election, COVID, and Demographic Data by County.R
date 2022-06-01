@@ -1,6 +1,11 @@
 data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
 
 data <- na.omit(data_uncleaned)
+
+data$Party16 = factor(if_else(percentage16_Hillary_Clinton >= percentage16_Donald_Trump, "Democrat", "Republican"))
+
+data$Party20 = factor(if_else(percentage20_Joe_Biden >= percentage20_Donald_Trump, "Democrat", "Republican"))
+
 attach(data)
 
 rownames(data) <- 1:nrow(data)
