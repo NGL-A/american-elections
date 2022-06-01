@@ -19,7 +19,7 @@ Our project wants to focus on what might affect citizens vote: if the geographic
 We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until 1st November 2020 (few days before the elections).
 
 
-Since it had many NA values (some counties changed name) we started by cleaning our dataset from these (we went from 4867 to 3046) and we actually got nearly to the real number of US counties which is 3142.
+Since it had many NA values (some counties changed name) we started by cleaning our dataset from these (we went from 4867 to 3046) and we actually got near to the real number of US counties which is 3142.
 
 ```{r, results='hide'}
 data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
@@ -27,7 +27,8 @@ data <- na.omit(data_uncleaned)
 attach(data)
 ```
 
-We added columns who won [...]
+To have a cleare added two new columns with each county winner Party in 2016 and 2020 elections.
+
 
 ```{r, results='hide', message=FALSE}
 library(tidyverse)
@@ -104,15 +105,6 @@ I'll declare we turned % in [0, 1]...
 
 ```{r}
 df[,c(18:23,26:36)] <- (df[,c(18:23,26:36)]/100)
-```
-&ensp;&ensp;  
-
-
-I'll add two new column with the winner of '16, '20 elections in each state.
-
-```{r}
-#Aggiungo colonne
-#as.integer(as.logical(data.frame$column.name))
 ```
 &ensp;&ensp;  
 
@@ -204,6 +196,7 @@ prov.data2 <- data %>%
   summarise(Black = sum(Black*TotalPop),
             Hispanic=sum(Hispanic*TotalPop),
             Asian=sum(Asian*TotalPop),
+            Unemployment = sum(Unemployment*TotalPop),
             votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
             votes16_Donald_Trump = sum(votes16_Donald_Trump),
             TotalPop = sum(TotalPop)) %>% 
@@ -216,6 +209,8 @@ prov.data2$Hispanic<- prov.data2$Hispanic/prov.data2$TotalPop
 
 prov.data2$Asian<- prov.data2$Asian/prov.data2$TotalPop
 
+prov.data2$Unemployment<- prov.data2$Unemployment/prov.data2$TotalPop
+
 colnames(prov.abb2)[1]<-"Abb"
 
 colnames(prov.abb2)[2]<-"region"
@@ -224,7 +219,7 @@ prov.data3<-left_join(prov.data2,prov.abb2)
 
 colnames(prov.data3)[1]<-"Abb"
 
-colnames(prov.data3)[8]<-"region"
+colnames(prov.data3)[9]<-"region"
 
 prov.usa_data <- left_join(prov.usa, prov.data3) 
 
@@ -244,6 +239,11 @@ map.asian<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_
   geom_polygon(aes(group = group, fill = Asian),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Asian", low="White", high = "darkgoldenrod")
 
+map.unemp<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Unemployment)+
+  geom_polygon(aes(group = group, fill = Unemployment),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Unemployment", low="White", high = "brown")
+
+
 map.us.16
 
 map.us.20
@@ -255,4 +255,6 @@ map.black
 map.hisp
 
 map.asian
+
+map.unemp
 ```
