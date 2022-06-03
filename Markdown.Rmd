@@ -24,7 +24,6 @@ Since it had many NA values (some counties changed name) we started by cleaning 
 ```{r, results='hide'}
 data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
 data <- na.omit(data_uncleaned)
-
 ```
 &ensp;&ensp;  
 
@@ -51,10 +50,8 @@ library(ISLR2)
 library(leaps)
 library(corrplot)
 library(glmnet)
-
 data$Party16 = factor(if_else(data$percentage16_Hillary_Clinton >= data$percentage16_Donald_Trump, "Democrat", "Republican"))
 data$Party20 = factor(if_else(data$percentage20_Joe_Biden >= data$percentage20_Donald_Trump, "Democrat", "Republican"))
-
 attach(data)
 ```
 &ensp;&ensp;  
@@ -79,8 +76,6 @@ We discovered that the gender doesn't affect any of the variables and that "Chil
 
 ```{r,  warning=FALSE, message= FALSE}
 #regression_here
-
-
 v<-c(percentage20_Joe_Biden>percentage20_Donald_Trump)
 regfit.full <- regsubsets(v~., data=data[-c(1:13,19:20,27,29,31,33,46,52,53)], really.big = T,nvmax = 34)
 reg.summary <- summary(regfit.full)
@@ -103,8 +98,6 @@ plot(regfit.full,scale="r2", col="#006699")
 plot(regfit.full,scale="adjr2", col="#006699")
 plot(regfit.full,scale="Cp", col="#006699")
 plot(regfit.full,scale="bic", col="#006699")
-
-
 ```
 &ensp;&ensp;  
 
@@ -257,19 +250,14 @@ map.asian
 map.unemp
 ```
 
-
-
 ```{r, warning=FALSE, message= FALSE}
-#ridge regression code
-
+#ridge regression  
+par(mfrow=c(1,2))
 X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
 y<-percentage20_Joe_Biden
 grid.ridge<-10^seq(2,-4,length=100)
 ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
 plot(ridge.mod, xvar="lambda")
-
-
-
 
 
 train <- sample(1:nrow(X),nrow(X)/2)
@@ -278,16 +266,14 @@ y.test<-y[test]
 ridge.pred<-predict(ridge.mod,s=4,newx = X[test,],type = "response")
 mean((ridge.pred-y.test)^2)
 
-
-lm(percentage20_Joe_Biden~.,data[,4:51],subset = train)
+#lm(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)],subset = train)
 predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
 
 
 # use cross-validation to choose the value of lambda 
+cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0,lambda = grid.ridge, nfold=10)
 
-cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0, nfold=10)
-
-cv.out$lambda[1:10]
+cv.out$cvm
 summary(cv.out$lambda)
 
 plot(cv.out)
@@ -297,15 +283,79 @@ bestlam <- cv.out$lambda[i.bestlam]
 bestlam
 cv.out$cvm[i.bestlam]
 
-min(cv.out$cvm)
 
+ridge.pred <- predict(ridge.mod, s = bestlam,
+                      newx = X[test, ])
+mean((ridge.pred - y.test)^2)
+
+#lasso regression code
+X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
+y<-percentage20_Joe_Biden
+grid.lasso<-10^seq(-0.5,-6,length=100)
+lasso.mod<-glmnet(X,y,alpha = 1,lambda = grid.lasso)
+plot(lasso.mod, xvar="lambda")
+
+
+train <- sample(1:nrow(X),nrow(X)/2)
+test<-(-train)
+y.test<-y[test]
+lasso.pred<-predict(lasso.mod,s=4,newx = X[test,],type = "response")
+mean((lasso.pred-y.test)^2)
+
+
+predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
+
+# use cross-validation to choose the value of lambda 
+cv.out.lasso <- cv.glmnet(X[train, ], y[train], alpha = 1,lambda = grid.lasso, nfold=10)
+
+cv.out.lasso$lambda
+summary(cv.out.lasso$lambda)
+
+plot(cv.out.lasso)
+i.bestlam.lasso <- which.min(cv.out.lasso$cvm)
+i.bestlam.lasso
+bestlam.lasso <- cv.out.lasso$lambda[i.bestlam.lasso]
+bestlam.lasso
+
+cv.out.lasso$cvm[i.bestlam.lasso]
+
+lasso.pred <- predict(lasso.mod, s = bestlam.lasso,
+                      newx = X[test, ])
+mean((lasso.pred - y.test)^2)
+par(mfrow=c(1,1))
+```
+
+
+```{r, warning=FALSE, message= FALSE}
+#ridge regression code
+X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
+y<-percentage20_Joe_Biden
+grid.ridge<-10^seq(2,-4,length=100)
+ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
+plot(ridge.mod, xvar="lambda")
+train <- sample(1:nrow(X),nrow(X)/2)
+test<-(-train)
+y.test<-y[test]
+ridge.pred<-predict(ridge.mod,s=4,newx = X[test,],type = "response")
+mean((ridge.pred-y.test)^2)
+lm(percentage20_Joe_Biden~.,data[,4:51],subset = train)
+predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
+# use cross-validation to choose the value of lambda 
+cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0, nfold=10)
+cv.out$lambda[1:10]
+summary(cv.out$lambda)
+plot(cv.out)
+i.bestlam <- which.min(cv.out$cvm)
+i.bestlam 
+bestlam <- cv.out$lambda[i.bestlam]
+bestlam
+cv.out$cvm[i.bestlam]
+min(cv.out$cvm)
 bestlam <- cv.out$lambda.min
 bestlam
 ridge.pred <- predict(ridge.mod, s = bestlam,
                       newx = X[test, ])
 mean((ridge.pred - y.test)^2)
-
-
 #lasso regression code
 X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
 y<-percentage20_Joe_Biden
