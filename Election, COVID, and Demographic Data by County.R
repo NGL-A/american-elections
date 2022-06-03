@@ -2,9 +2,9 @@ data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
 
 data <- na.omit(data_uncleaned)
 
-data$Party16 = factor(if_else(percentage16_Hillary_Clinton >= percentage16_Donald_Trump, "Democrat", "Republican"))
+data$Party16 = factor(ifelse(percentage16_Hillary_Clinton >= percentage16_Donald_Trump, "Democrat", "Republican"))
 
-data$Party20 = factor(if_else(percentage20_Joe_Biden >= percentage20_Donald_Trump, "Democrat", "Republican"))
+data$Party20 = factor(ifelse(percentage20_Joe_Biden >= percentage20_Donald_Trump, "Democrat", "Republican"))
 
 attach(data)
 
@@ -32,7 +32,7 @@ library(glmnet)
 
 v<-c(data$percentage20_Donald_Trump<0.5)
 
-regfit.full <- regsubsets(v~., data=data[,-1:-13], really.big = T,nvmax = 38)
+regfit.full <- regsubsets(v~., data=data[-c(1:13,19:20,27,29,31,33,52,53)], really.big = T,nvmax = 38)
 
 reg.summary <- summary(regfit.full)
 
@@ -48,21 +48,21 @@ plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
 
 which.max(reg.summary$adjr2)
 
-points(11,reg.summary$adjr2[11], col="red",cex=2,pch=20)
+points(which.max(reg.summary$adjr2),reg.summary$adjr2[which.max(reg.summary$adjr2)], col="red",cex=2,pch=20)
 
 # Mallow's Cp with its smallest value
 plot(reg.summary$cp,xlab="Number of Variables",ylab="Cp",type='l')
 
 which.min(reg.summary$cp)
 
-points(10,reg.summary$cp[10],col="red",cex=2,pch=20)
+points(which.min(reg.summary$cp),reg.summary$cp[which.min(reg.summary$cp)],col="red",cex=2,pch=20)
 
 # BIC with its smallest value
 plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
 
 which.min(reg.summary$bic)
 
-points(6,reg.summary$bic[6],col="red",cex=2,pch=20)
+points(which.min(reg.summary$bic),reg.summary$bic[which.min(reg.summary$bic)],col="red",cex=2,pch=20)
 
 par(mfrow=c(1,1))
 
@@ -79,6 +79,7 @@ plot(regfit.full,scale="bic")
 coef(regfit.full,6)
 
 par(mfrow=c(1,1))
+
 
 
 
@@ -240,11 +241,17 @@ map.unemp
 
 
 
-ggplot(data,aes(x=log(data$TotalPop), group=Party20,fill=Party20))+
-  geom_histogram(position="identity",alpha=0.5,binwidth=0.4)+theme_bw()
 
-ggplot(data,aes(x=log(data$cases), group=Party20,fill=Party20))+
-  geom_histogram(position="identity",alpha=0.5,binwidth=0.4)+theme_bw()
+ggplot(data,aes(x=log(data$TotalPop), group=Party20,fill=Party20))+
+  geom_histogram(position="identity",alpha=0.5,binwidth=0.4)+theme_bw() + 
+  scale_fill_manual(values = alpha(c("blue2", "red3"), 1))
+
+ggplot(data,aes(x=log(data$Black), group=Party20,fill=Party20))+
+  geom_histogram(position="identity",alpha=0.5,binwidth=0.4)+theme_bw() + 
+  scale_fill_manual(values = alpha(c("blue2", "red3"), 1))
+
+
+
 
 
 #covariance and correlation
@@ -252,7 +259,7 @@ S<-cov(data[,4:51])
 
 P<-cov2cor(S)
 
-corrplot(P)
+corrplot(P, tl.cex = 0.5)
 
 
 #ridge regression
@@ -262,10 +269,6 @@ y<-percentage20_Joe_Biden
 grid<-10^seq(10,-1,length=100)
 ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid)
 plot(ridge.mod, xvar="lambda")
-
-#lasso regression
-lasso <- glmnet(X, y, alpha=1, lambda=grid, standardize=TRUE)
-plot(lasso.mod, xvar="lambda")
 
 
 train <- sample(1:nrow(X),nrow(X)/2)
