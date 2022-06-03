@@ -277,13 +277,13 @@ map.unemp
 
 
 
-```{r, results='hide', warning=FALSE, message= FALSE}
+```{r, warning=FALSE, message= FALSE}
 #ridge regression code
 
 X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
 y<-percentage20_Joe_Biden
 grid.ridge<-10^seq(2,-4,length=100)
-ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ride)
+ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
 plot(ridge.mod, xvar="lambda")
 
 
