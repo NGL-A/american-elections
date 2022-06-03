@@ -114,14 +114,13 @@ points(which.min(reg.summary$bic),reg.summary$bic[which.min(reg.summary$bic)],co
 
 par(mfrow=c(1,1))
 
-plot(regfit.full,scale="r2")
+plot(regfit.full,scale="r2", col="#006699")
 
-plot(regfit.full,scale="adjr2")
+plot(regfit.full,scale="adjr2", col="#006699")
 
-plot(regfit.full,scale="Cp")
+plot(regfit.full,scale="Cp", col="#006699")
 
-plot(regfit.full,scale="bic")
-
+plot(regfit.full,scale="bic", col="#006699")
 
 ```
 &ensp;&ensp;  
