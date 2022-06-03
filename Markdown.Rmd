@@ -274,3 +274,60 @@ map.hisp
 map.asian
 map.unemp
 ```
+
+
+
+```{r, results='hide', warning=FALSE, message= FALSE}
+#ridge regression code
+
+X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
+y<-percentage20_Joe_Biden
+grid.ridge<-10^seq(4,-6,length=100)
+ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ride)
+plot(ridge.mod, xvar="lambda")
+
+
+
+
+
+train <- sample(1:nrow(X),nrow(X)/2)
+test<-(-train)
+y.test<-y[test]
+ridge.pred<-predict(ridge.mod,s=4,newx = X[test,],type = "response")
+mean((ridge.pred-y.test)^2)
+
+
+lm(percentage20_Joe_Biden~.,data[,4:51],subset = train)
+predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
+
+
+# use cross-validation to choose the value of lambda 
+
+cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0, nfold=10)
+
+cv.out$lambda[1:10]
+summary(cv.out$lambda)
+
+plot(cv.out)
+i.bestlam <- which.min(cv.out$cvm)
+i.bestlam 
+bestlam <- cv.out$lambda[i.bestlam]
+bestlam
+cv.out$cvm[i.bestlam]
+
+min(cv.out$cvm)
+
+bestlam <- cv.out$lambda.min
+bestlam
+ridge.pred <- predict(ridge.mod, s = bestlam,
+                      newx = X[test, ])
+mean((ridge.pred - y.test)^2)
+
+
+#lasso regression code
+X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
+y<-percentage20_Joe_Biden
+grid.lasso<-10^seq(1,-5,length=100)
+lasso.mod<-glmnet(X,y,alpha = 1,lambda = grid.lasso)
+plot(lasso.mod, xvar="lambda")
+```
