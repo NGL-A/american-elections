@@ -151,6 +151,65 @@ Here I think we finished to clean our data.
 
 --------------------------------------MAPS--------------------------------------
 ```{r, results='hide', warning=FALSE, message= FALSE}
+
+
+library(ggrepel)
+library(ggplot2)
+library(tidyverse)
+
+
+#works
+df <- data.frame(
+  group = c("Professional", "Service", "Office", "Construction", "Production"),
+  value = c(sum(data$TotalPop*Professional), sum(data$TotalPop*Service), sum(data$TotalPop*Office), sum(data$TotalPop*Construction), sum(data$TotalPop*Production))
+)
+
+df[2]<-round(100*df[2]/sum(df[2]),digits = 2)
+df2 <- df %>% 
+  mutate(csum = rev(cumsum(rev(value))), 
+         pos = value/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), value/2, pos))
+
+ggplot(df, aes(x = "" , y = value, fill = fct_inorder(group))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Pastel1") +
+  geom_label_repel(data = df2,
+                   aes(y = pos, label = paste0(value, "%")),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
+  guides(fill = guide_legend(title = "Group")) +
+  theme_void()
+
+
+
+
+#population
+
+
+df1 <- data.frame(
+  group = c("White", "Hispanic", "Black", "Asian", "Native", "Pacific"),
+  value = c(sum(data$TotalPop*White), sum(data$TotalPop*Hispanic), sum(data$TotalPop*Black), sum(data$TotalPop*Asian), sum(data$TotalPop*Native), sum(data$TotalPop*Pacific))
+)
+
+df1[2]<-round(100*df1[2]/sum(df1[2]),digits = 2)
+df3 <- df1 %>% 
+  mutate(csum = rev(cumsum(rev(value))), 
+         pos = value/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), value/2, pos))
+
+ggplot(df1, aes(x = "" , y = value, fill = fct_inorder(group))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Pastel1") +
+  geom_label_repel(data = df3,
+                   aes(y = pos, label = paste0(value, "%")),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
+  guides(fill = guide_legend(title = "Group")) +
+  theme_void()
+
+
+
+
 options(repr.plot.width = 17, repr.plot.height = 9)
 prov.usa <- map_data("state")
 prov.abb <- data.frame(state = state.name, Abb = state.abb)
