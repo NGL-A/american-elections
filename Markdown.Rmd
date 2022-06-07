@@ -24,6 +24,7 @@ Since it had many NA values (some counties changed name) we started by cleaning 
 ```{r, results='hide'}
 data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
 data <- na.omit(data_uncleaned)
+
 ```
 &ensp;&ensp;  
 
@@ -50,8 +51,12 @@ library(ISLR2)
 library(leaps)
 library(corrplot)
 library(glmnet)
+library(ggplot2)
+library(tidyverse)
+library(ggrepel)
 data$Party16 = factor(if_else(data$percentage16_Hillary_Clinton >= data$percentage16_Donald_Trump, "Democrat", "Republican"))
 data$Party20 = factor(if_else(data$percentage20_Joe_Biden >= data$percentage20_Donald_Trump, "Democrat", "Republican"))
+
 attach(data)
 ```
 &ensp;&ensp;  
@@ -73,33 +78,7 @@ corrplot(cor, type = 'upper', tl.cex = 0.5)
 ```
 
 We discovered that the gender doesn't affect any of the variables and that "ChildPoverty" behave like "Poverty", so we kept only the latter; while we chose "TotalPop" to represent "Men" and "Women", but also "Emplyed" and "VotingAgeCitizen". "IncomeErr" and "IncomePerCapErr" were grouped rispectively with their counterpart "Income" and "IncomePerCap".
-
-```{r,  warning=FALSE, message= FALSE}
-#regression_here
-v<-c(percentage20_Joe_Biden>percentage20_Donald_Trump)
-regfit.full <- regsubsets(v~., data=data[-c(1:13,19:20,27,29,31,33,46,52,53)], really.big = T,nvmax = 34)
-reg.summary <- summary(regfit.full)
-reg.summary$outmat
-par(mfrow=c(2,2))
-plot(reg.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
-plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
-which.max(reg.summary$adjr2)
-points(which.max(reg.summary$adjr2),reg.summary$adjr2[which.max(reg.summary$adjr2)], col="red",cex=2,pch=20)
-# Mallow's Cp with its smallest value
-plot(reg.summary$cp,xlab="Number of Variables",ylab="Cp",type='l')
-which.min(reg.summary$cp)
-points(which.min(reg.summary$cp),reg.summary$cp[which.min(reg.summary$cp)],col="red",cex=2,pch=20)
-# BIC with its smallest value
-plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
-which.min(reg.summary$bic)
-points(which.min(reg.summary$bic),reg.summary$bic[which.min(reg.summary$bic)],col="red",cex=2,pch=20)
-par(mfrow=c(1,1))
-plot(regfit.full,scale="r2", col="#006699")
-plot(regfit.full,scale="adjr2", col="#006699")
-plot(regfit.full,scale="Cp", col="#006699")
-plot(regfit.full,scale="bic", col="#006699")
-```
-&ensp;&ensp;  
+ 
 
 #We discovered that columns about transport (Drive, Carpool, Transit, Walk, Other Transp, WorkAtHome,MeanCommute) weren't relevant for our project / they were linearly dependent with other variables so we decided to maintain these:  
 &ensp;&ensp;1. County: county name  
@@ -140,7 +119,8 @@ plot(regfit.full,scale="bic", col="#006699")
 &ensp;&ensp;36. Unemployment: unemployment rate (percent)  
 
 ```{r}
-df <- data[-c(1,19:20,27,29,31,33,39:46)]
+df <- data[-c(1,19:20,27,29,31,33)]
+summary(df)
 ```
 &ensp;&ensp;  
 
@@ -149,32 +129,26 @@ df <- data[-c(1,19:20,27,29,31,33,39:46)]
 Here I think we finished to clean our data.
 
 
---------------------------------------MAPS--------------------------------------
-```{r, results='hide', warning=FALSE, message= FALSE}
 
-
-library(ggrepel)
-library(ggplot2)
-library(tidyverse)
-
+```{r}
 
 #works
-df <- data.frame(
+df.wk <- data.frame(
   group = c("Professional", "Service", "Office", "Construction", "Production"),
   value = c(sum(data$TotalPop*Professional), sum(data$TotalPop*Service), sum(data$TotalPop*Office), sum(data$TotalPop*Construction), sum(data$TotalPop*Production))
 )
 
-df[2]<-round(100*df[2]/sum(df[2]),digits = 2)
-df2 <- df %>% 
+df.wk[2]<-round(100*df.wk[2]/sum(df.wk[2]),digits = 2)
+df.wk2 <- df.wk %>% 
   mutate(csum = rev(cumsum(rev(value))), 
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
-ggplot(df, aes(x = "" , y = value, fill = fct_inorder(group))) +
+ggplot(df.wk, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
   scale_fill_brewer(palette = "Pastel1") +
-  geom_label_repel(data = df2,
+  geom_label_repel(data = df.wk2,
                    aes(y = pos, label = paste0(value, "%")),
                    size = 4.5, nudge_x = 1, show.legend = FALSE) +
   guides(fill = guide_legend(title = "Group")) +
@@ -186,27 +160,59 @@ ggplot(df, aes(x = "" , y = value, fill = fct_inorder(group))) +
 #population
 
 
-df1 <- data.frame(
+df.pop <- data.frame(
   group = c("White", "Hispanic", "Black", "Asian", "Native", "Pacific"),
   value = c(sum(data$TotalPop*White), sum(data$TotalPop*Hispanic), sum(data$TotalPop*Black), sum(data$TotalPop*Asian), sum(data$TotalPop*Native), sum(data$TotalPop*Pacific))
 )
 
-df1[2]<-round(100*df1[2]/sum(df1[2]),digits = 2)
-df3 <- df1 %>% 
+df.pop[2]<-round(100*df.pop[2]/sum(df.pop[2]),digits = 2)
+df.pop2 <- df.pop %>% 
   mutate(csum = rev(cumsum(rev(value))), 
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
-ggplot(df1, aes(x = "" , y = value, fill = fct_inorder(group))) +
+ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
   scale_fill_brewer(palette = "Pastel1") +
-  geom_label_repel(data = df3,
+  geom_label_repel(data = df.pop2,
                    aes(y = pos, label = paste0(value, "%")),
                    size = 4.5, nudge_x = 1, show.legend = FALSE) +
   guides(fill = guide_legend(title = "Group")) +
   theme_void()
 
+
+
+
+
+#transport
+df.tr <- data.frame(
+  group = c("Drive", "Carpool", "Transit", "Walk", "OtherTransport"),
+  value = c(sum(data$TotalPop*Drive), sum(data$TotalPop*Carpool),
+            sum(data$TotalPop*Transit), sum(data$TotalPop*Walk)
+            , sum(data$TotalPop*OtherTransp))
+)
+df.tr[2]<-round(100*df.tr[2]/sum(df.tr[2]),digits = 2)
+df.tr2 <- df.tr %>% 
+  mutate(csum = rev(cumsum(rev(value))), 
+         pos = value/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), value/2, pos))
+ggplot(df.tr, aes(x = "" , y = value, fill = fct_inorder(group))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Pastel1") +
+  geom_label_repel(data = df.tr2,
+                   aes(y = pos, label = paste0(value, "%")),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
+  guides(fill = guide_legend(title = "Group")) +
+  theme_void()
+
+
+```
+
+
+--------------------------------------MAPS--------------------------------------
+```{r, results='hide', warning=FALSE, message= FALSE}
 
 
 
@@ -307,16 +313,59 @@ map.black
 map.hisp
 map.asian
 map.unemp
+
+par(mfrow=c(1,1))
+plot(White,log(TotalPop),col=Party20)
+plot(Black,log(TotalPop),col=Party20)
+plot(Hispanic,log(TotalPop),col=Party20)
+plot(Asian,log(TotalPop),col=Party20)
+
 ```
 
+
+```{r,  warning=FALSE, message= FALSE}
+#regression_here
+
+
+v<-c(percentage20_Joe_Biden>percentage20_Donald_Trump)
+regfit.full <- regsubsets(v~., data=data[-c(1:13,19:20,27,29,31,33,46,52,53)], really.big = T,nvmax = 34)
+reg.summary <- summary(regfit.full)
+reg.summary$outmat
+par(mfrow=c(2,2))
+plot(reg.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
+plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
+which.max(reg.summary$adjr2)
+points(which.max(reg.summary$adjr2),reg.summary$adjr2[which.max(reg.summary$adjr2)], col="red",cex=2,pch=20)
+# Mallow's Cp with its smallest value
+plot(reg.summary$cp,xlab="Number of Variables",ylab="Cp",type='l')
+which.min(reg.summary$cp)
+points(which.min(reg.summary$cp),reg.summary$cp[which.min(reg.summary$cp)],col="red",cex=2,pch=20)
+# BIC with its smallest value
+plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
+which.min(reg.summary$bic)
+points(which.min(reg.summary$bic),reg.summary$bic[which.min(reg.summary$bic)],col="red",cex=2,pch=20)
+par(mfrow=c(1,1))
+plot(regfit.full,scale="r2", col="#006699")
+plot(regfit.full,scale="adjr2", col="#006699")
+plot(regfit.full,scale="Cp", col="#006699")
+plot(regfit.full,scale="bic", col="#006699")
+
+
+```
+&ensp;&ensp; 
+
 ```{r, warning=FALSE, message= FALSE}
-#ridge regression  
+#ridge regression
 par(mfrow=c(1,2))
+
 X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
 y<-percentage20_Joe_Biden
 grid.ridge<-10^seq(2,-4,length=100)
 ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
 plot(ridge.mod, xvar="lambda")
+
+
+
 
 
 train <- sample(1:nrow(X),nrow(X)/2)
@@ -325,11 +374,13 @@ y.test<-y[test]
 ridge.pred<-predict(ridge.mod,s=4,newx = X[test,],type = "response")
 mean((ridge.pred-y.test)^2)
 
+
 #lm(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)],subset = train)
 predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
 
 
 # use cross-validation to choose the value of lambda 
+
 cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0,lambda = grid.ridge, nfold=10)
 
 cv.out$cvm
@@ -347,12 +398,14 @@ ridge.pred <- predict(ridge.mod, s = bestlam,
                       newx = X[test, ])
 mean((ridge.pred - y.test)^2)
 
+
 #lasso regression code
 X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
 y<-percentage20_Joe_Biden
 grid.lasso<-10^seq(-0.5,-6,length=100)
 lasso.mod<-glmnet(X,y,alpha = 1,lambda = grid.lasso)
 plot(lasso.mod, xvar="lambda")
+
 
 
 train <- sample(1:nrow(X),nrow(X)/2)
@@ -364,7 +417,9 @@ mean((lasso.pred-y.test)^2)
 
 predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
 
+
 # use cross-validation to choose the value of lambda 
+
 cv.out.lasso <- cv.glmnet(X[train, ], y[train], alpha = 1,lambda = grid.lasso, nfold=10)
 
 cv.out.lasso$lambda
@@ -382,43 +437,4 @@ lasso.pred <- predict(lasso.mod, s = bestlam.lasso,
                       newx = X[test, ])
 mean((lasso.pred - y.test)^2)
 par(mfrow=c(1,1))
-```
-
-
-```{r, warning=FALSE, message= FALSE}
-#ridge regression code
-X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
-y<-percentage20_Joe_Biden
-grid.ridge<-10^seq(2,-4,length=100)
-ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
-plot(ridge.mod, xvar="lambda")
-train <- sample(1:nrow(X),nrow(X)/2)
-test<-(-train)
-y.test<-y[test]
-ridge.pred<-predict(ridge.mod,s=4,newx = X[test,],type = "response")
-mean((ridge.pred-y.test)^2)
-lm(percentage20_Joe_Biden~.,data[,4:51],subset = train)
-predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
-# use cross-validation to choose the value of lambda 
-cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0, nfold=10)
-cv.out$lambda[1:10]
-summary(cv.out$lambda)
-plot(cv.out)
-i.bestlam <- which.min(cv.out$cvm)
-i.bestlam 
-bestlam <- cv.out$lambda[i.bestlam]
-bestlam
-cv.out$cvm[i.bestlam]
-min(cv.out$cvm)
-bestlam <- cv.out$lambda.min
-bestlam
-ridge.pred <- predict(ridge.mod, s = bestlam,
-                      newx = X[test, ])
-mean((ridge.pred - y.test)^2)
-#lasso regression code
-X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
-y<-percentage20_Joe_Biden
-grid.lasso<-10^seq(-1,-4,length=100)
-lasso.mod<-glmnet(X,y,alpha = 1,lambda = grid.lasso)
-plot(lasso.mod, xvar="lambda")
 ```
