@@ -54,6 +54,7 @@ library(glmnet)
 library(ggplot2)
 library(tidyverse)
 library(ggrepel)
+library(pROC)
 data$Party16 = factor(if_else(data$percentage16_Hillary_Clinton >= data$percentage16_Donald_Trump, "Democrat", "Republican"))
 data$Party20 = factor(if_else(data$percentage20_Joe_Biden >= data$percentage20_Donald_Trump, "Democrat", "Republican"))
 
@@ -322,6 +323,7 @@ plot(Asian,log(TotalPop),col=Party20)
 
 ```
 
+-------------------------------REGRESSIONS--------------------------------------
 
 ```{r,  warning=FALSE, message= FALSE}
 #regression_here
@@ -354,7 +356,7 @@ plot(regfit.full,scale="bic", col="#006699")
 ```
 &ensp;&ensp; 
 
-```{r, warning=FALSE, message= FALSE}
+```{r, results='hide', warning=FALSE, message= FALSE}
 #ridge regression
 par(mfrow=c(1,2))
 
@@ -437,112 +439,53 @@ lasso.pred <- predict(lasso.mod, s = bestlam.lasso,
                       newx = X[test, ])
 mean((lasso.pred - y.test)^2)
 par(mfrow=c(1,1))
+
 ```
 &ensp;&ensp; 
 
 ```{r, warning=FALSE, message= FALSE}
-#logistic regression
-logit.out <- glm(Party20~., data = data[-c(1:13,19:20,27,29,31,33,52,53)], family = binomial)
-summary(logit.out)
-#plot(logit.out)
-library(pROC)
-logistic.prob <- predict(logit.out, type = "response")
-roc.out <- roc(Party20, logistic.prob, levels= c("No", "Yes"))
-
 ###############################
 # LOGISTIC CLASSIFIER
 ##############################
 
-library(ISLR2)
-data("Default")
-attach(Default)
-View(Default)
-
-# scatterplot of the data with the two classes
-
-#l <- default=="Yes"
-#plot(balance, income, col=l+1, pch=l*15+1)
-
 # logistic classifier
-
-mod.out <- glm(Party20 ~. , data= data[-c(1:13,19:20,27,29,31,33,52,53)],family = binomial)
+mod.out <- glm(Party20 ~. , data=data[-c(1:13,19:20,27,29,31,33,52,53)], family = binomial)
 logistic.prob <- predict(mod.out, type="response")
 
 logistic.pred <- rep("Democrat", 3046)
 logistic.pred[logistic.prob>0.5] <- "Republican"
 
-#default[100:600]
-logistic.pred[100:600]
 
 # decision boundary
-
 summary(mod.out)
 beta <- coefficients(mod.out)
 
-#intercept <- -beta[1]/beta[2]
-#slope <- -beta[3]/beta[2]
-
-#plot(balance, income, col=l+1, pch=l*500+1)
-#abline(intercept, slope, lwd=2, col="blue")
-
 # confusion matrix
-
 table(logistic.pred, Party20)
-
-# overall (training) error rate
-#(225+38)/10000
 
 # trivial classifier 
-
 trivial.pred <- rep("Democrat", 3046)
-
 table(trivial.pred, Party20)
 
-# overall (training) error rate for the trivial classifier
-#333/10000
-
-# (training) error rate for defaulting-customers
-table(logistic.pred, Party20)
-#225/(225+108)
-
-
-
 # threshold=0.2
-
 logistic.pred <- rep("Democrat", 3046)
 logistic.pred[logistic.prob>0.2] <- "Republican"
-
 table(logistic.pred, Party20)
 
-# overall (training) error rate
-#(133+271)/10000
-
-# (training) error rate among individuals who defaulted 
-#133/(133+200)
-
-# Set threshold = 0.5, confusion matrix
-
-logistic.pred <- rep("No", 10000)
-logistic.pred[logistic.prob>0.5] <- "Yes"
-
-CM <- table(logistic.pred, default)
+CM <- table(logistic.pred, Party20)
 
 # rearrange rows and columns to match 
 # the confusion matrix on the slides
 CM <- CM[2:1, 2:1]
 
 # add margins to the confusion matrix
-
 CM <- addmargins(CM, margin = c(1, 2))
 CM
 
 # FPR: False Positive Rate = FP/N
 #################################
 
-fpr <- 38/9666
-fpr
-
-fpr <- CM["Yes", "No"]/CM["Sum", "No"]   
+fpr <- CM["Republican", "Democrat"]/CM["Sum", "Democrat"]   
 fpr 
 
 # TNR : True negative rate = TN/N = (1 - FPR)  
@@ -555,10 +498,7 @@ specif
 # TPR = Sensitivity, which refers to Pr(positive | positive)
 ############################################################
 
-tpr <- 108/333
-tpr
-
-tpr <- CM["Yes", "Yes"]/CM["Sum", "Yes"]   
+tpr <- CM["Republican", "Republican"]/CM["Sum", "Republican"]   
 tpr 
 
 # ROC curve 
@@ -567,24 +507,20 @@ library(pROC)
 
 # If labels are "0" and "1" then "0"=negative and "1"=positive
 # levels = negative (0's) as first element and positive (1's) as second
-
 roc.out <- roc(Party20, logistic.prob, levels=c("Democrat", "Republican"))
 
 # different ways of plotting the ROC curve (check labels of the axes)
-
 plot(roc.out,  print.auc=TRUE, legacy.axes=TRUE, xlab="False positive rate", ylab="True positive rate")
 plot(roc.out, legacy.axes=TRUE)
 plot(roc.out)
 
 auc(roc.out)
-
 plot(roc.out,  print.auc=TRUE, legacy.axes=TRUE, xlab="False positive rate", ylab="True positive rate")
 
 # specificity and sensitivity for a given threshold
 coords(roc.out, 0.2)
 
-
-
-
+# threshold that maximises the sum of sensitivity and specificity
+coords(roc.out, "best")
 
 ```
