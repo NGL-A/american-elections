@@ -1,7 +1,7 @@
 ---
 title: "Elections, COVID and Demographic Data"
 author: "Bissacco, Sartori, Sboarina"
-date: "27/5/2022"
+date: "21/06/2022"
 output: html_document
 ---
 
@@ -37,28 +37,26 @@ data[,c(21:26,32:45,47:51)] <- (data[,c(21:26,32:45,47:51)]/100)
 
 We added two new columns with each county winner Party in 2016 and 2020 elections.
 
-
 ```{r, results='hide', message=FALSE}
-library(tidyverse)
-library(maps)
-library(png)
-library(grid)
-library(cowplot)
-library(statebins)
-library(DT)
-#library(gRbase)
-library(ISLR2)
-library(leaps)
 library(corrplot)
-library(glmnet)
 library(ggplot2)
-library(tidyverse)
 library(ggrepel)
+library(glmnet)
+library(leaps)
+library(maps)
 library(pROC)
+library(tidyverse)
+library(usmap)
+
 data$Party16 = factor(if_else(data$percentage16_Hillary_Clinton >= data$percentage16_Donald_Trump, "Democrat", "Republican"))
 data$Party20 = factor(if_else(data$percentage20_Joe_Biden >= data$percentage20_Donald_Trump, "Democrat", "Republican"))
+```
+&ensp;&ensp;  
 
-attach(data)
+Since later on we will analyze and plot the situation in some counties in the USA we needed to fix Louisiana's ones. The state is in fact, the only one in the country which divides its territory in parishes and our dataset was missing the suffix "Parish" in the name of each subdivision.
+
+```{r, results='hide'}
+data$county[data$state == "LA"] = paste(data$county[data$state == "LA"], "Parish")
 ```
 &ensp;&ensp;  
 
@@ -119,25 +117,22 @@ We discovered that the gender doesn't affect any of the variables and that "Chil
 &ensp;&ensp;35. FamilyWork: percent of population in unpaid family work  
 &ensp;&ensp;36. Unemployment: unemployment rate (percent)  
 
-```{r}
+```{r, results='hide'}
 df <- data[-c(1,19:20,27,29,31,33)]
 summary(df)
 ```
 &ensp;&ensp;  
 
-
-
-Here I think we finished to clean our data.
-
-
+----------------------------PIE---------------------------------
 
 ```{r}
+attach(data)
 
 #works
 df.wk <- data.frame(
   group = c("Professional", "Service", "Office", "Construction", "Production"),
-  value = c(sum(data$TotalPop*Professional), sum(data$TotalPop*Service), sum(data$TotalPop*Office), sum(data$TotalPop*Construction), sum(data$TotalPop*Production))
-)
+  value = c(sum(TotalPop*Professional), sum(TotalPop*Service), sum(TotalPop*Office), sum(TotalPop*Construction), sum(TotalPop*Production))
+  )
 
 df.wk[2]<-round(100*df.wk[2]/sum(df.wk[2]),digits = 2)
 df.wk2 <- df.wk %>% 
@@ -157,10 +152,7 @@ ggplot(df.wk, aes(x = "" , y = value, fill = fct_inorder(group))) +
 
 
 
-
 #population
-
-
 df.pop <- data.frame(
   group = c("White", "Hispanic", "Black", "Asian", "Native", "Pacific"),
   value = c(sum(data$TotalPop*White), sum(data$TotalPop*Hispanic), sum(data$TotalPop*Black), sum(data$TotalPop*Asian), sum(data$TotalPop*Native), sum(data$TotalPop*Pacific))
@@ -181,8 +173,6 @@ ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
                    size = 4.5, nudge_x = 1, show.legend = FALSE) +
   guides(fill = guide_legend(title = "Group")) +
   theme_void()
-
-
 
 
 
@@ -207,15 +197,11 @@ ggplot(df.tr, aes(x = "" , y = value, fill = fct_inorder(group))) +
                    size = 4.5, nudge_x = 1, show.legend = FALSE) +
   guides(fill = guide_legend(title = "Group")) +
   theme_void()
-
-
 ```
 
 
 --------------------------------------MAPS--------------------------------------
 ```{r, results='hide', warning=FALSE, message= FALSE}
-
-
 
 options(repr.plot.width = 17, repr.plot.height = 9)
 prov.usa <- map_data("state")
@@ -315,6 +301,27 @@ map.hisp
 map.asian
 map.unemp
 
+#sistemo discorso contee
+plot_usmap(data = data, values = "Party20") + 
+  scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
+  theme(legend.position = "right")
+
+data %>% 
+  group_by(state) %>% 
+  mutate(fips = fips(state = first(state), county = county)) -> FIPS.data
+
+plot_usmap(data = FIPS.data, values = "Party20", include = c("AR", "LA", "TN", "MS", "NC", "SC")) + 
+  scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
+  theme(legend.position = "right")
+
+
+plot_usmap(data = FIPS.data, values = "Black", include = c("AR", "LA", "TN", "MS", "NC", "SC")) + 
+  scale_fill_continuous(low = "white", high = "red", name = "Black (2017)", label = scales::comma) + 
+  labs(title = "South-eastern US - Black", subtitle = "These are the states in the Pacific Timezone.") +
+  theme(legend.position = "right")
+
+
+
 par(mfrow=c(1,1))
 plot(White,log(TotalPop),col=Party20)
 plot(Black,log(TotalPop),col=Party20)
@@ -365,8 +372,6 @@ y<-percentage20_Joe_Biden
 grid.ridge<-10^seq(2,-4,length=100)
 ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
 plot(ridge.mod, xvar="lambda")
-
-
 
 
 
@@ -502,9 +507,6 @@ tpr <- CM["Republican", "Republican"]/CM["Sum", "Republican"]
 tpr 
 
 # ROC curve 
-
-library(pROC)
-
 # If labels are "0" and "1" then "0"=negative and "1"=positive
 # levels = negative (0's) as first element and positive (1's) as second
 roc.out <- roc(Party20, logistic.prob, levels=c("Democrat", "Republican"))
