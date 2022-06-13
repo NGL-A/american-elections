@@ -11,7 +11,539 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Elections, COVID and Demographic Data
 
+---
+title: "Elections, COVID and Demographic Data"
+author: "Bissacco, Sartori, Sboarina"
+date: "21/06/2022"
+output: html_document
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Elections, COVID and Demographic Data
+
+
+
+Every 4 year one of the most relevant political events in the world takes place: the election of the US President. After months, even years, of preparations (campaigns, public speeches, sponsors...) the eyes of the entire world are looking to the results of those elections, to the one who will be leading the "free world" in the near future.
+
+Our project wants to focus on what might affect citizens vote: if the geographical area is relevant, if the type of work can change the preference, if one ethnicity is more likely to vote a Party over the other and if there is any strong correlation between the variables.  
+We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until 1st November 2020 (few days before the elections).
+
+
+Since it had many NA values (some counties changed name) we started by cleaning our dataset from these (we went from 4867 to 3046) and we actually got near to the real number of US counties which is 3142.
+
+```{r, results='hide'}
+data_uncleaned <- read.csv("county_statistics.csv", sep = ",", header = TRUE)
+data <- na.omit(data_uncleaned)
+
+```
+&ensp;&ensp;  
+
+Since data from Census 2017 are in percentage we decided to turn them into relative numbers, like Election ones.
+
+```{r}
+data[,c(21:26,32:45,47:51)] <- (data[,c(21:26,32:45,47:51)]/100)
+```
+&ensp;&ensp;  
+
+We added two new columns with each county winner Party in 2016 and 2020 elections.
+
+```{r, results='hide', message=FALSE}
+library(corrplot)
+library(ggplot2)
+library(ggrepel)
+library(glmnet)
+library(leaps)
+library(maps)
+library(pROC)
+library(tidyverse)
+library(usmap)
+
+data$Party16 = factor(if_else(data$percentage16_Hillary_Clinton >= data$percentage16_Donald_Trump, "Democrat", "Republican"))
+data$Party20 = factor(if_else(data$percentage20_Joe_Biden >= data$percentage20_Donald_Trump, "Democrat", "Republican"))
+```
+&ensp;&ensp;  
+
+Since later on we will analyze and plot the situation in some counties in the USA we needed to fix Louisiana's ones. The state is in fact, the only one in the country which divides its territory in parishes and our dataset was missing the suffix "Parish" in the name of each subdivision.
+
+```{r, results='hide'}
+data$county[data$state == "LA"] = paste(data$county[data$state == "LA"], "Parish")
+```
+&ensp;&ensp;  
+
+We also decided to remove the variables which were deeply related with others using a correlation matrix^[we changed columns "percentageXX_Candidate" into "pCandidateXX" and "votesXX_Candidate" into "CandidateXX" to obtain a clearer plot.].
+
+```{r, results='hide', warning=FALSE, message= FALSE}
+data.corr <- data
+names(data.corr)[names(data.corr) == "percentage16_Donald_Trump"] <- "pTrump16"
+names(data.corr)[names(data.corr) == "percentage16_Hillary_Clinton"] <- "pClinton16"
+names(data.corr)[names(data.corr) == "percentage20_Donald_Trump"] <- "pTrump20"
+names(data.corr)[names(data.corr) == "percentage20_Joe_Biden"] <- "pBiden20"
+names(data.corr)[names(data.corr) == "votes16_Donald_Trump"] <- "Trump16"
+names(data.corr)[names(data.corr) == "votes16_Hillary_Clinton"] <- "Clinton16"
+names(data.corr)[names(data.corr) == "votes20_Donald_Trump"] <- "Trump20"
+names(data.corr)[names(data.corr) == "votes20_Joe_Biden"] <- "Biden20"
+cor <- cor(data.corr[4:51])
+corrplot(cor, type = 'upper', tl.cex = 0.5)
+
+```
+
+We discovered that the gender doesn't affect any of the variables and that "ChildPoverty" behave like "Poverty", so we kept only the latter; while we chose "TotalPop" to represent "Men" and "Women", but also "Emplyed" and "VotingAgeCitizen". "IncomeErr" and "IncomePerCapErr" were grouped respectively with their counterpart "Income" and "IncomePerCap". "votesXX_Candidate" had been considered together with "percentageXX_Candidate".  
+So we decided to maintain these:
+
+&ensp;&ensp;1. County: county name  
+&ensp;&ensp;2. State: Two-Letter State Abbreviation  
+&ensp;&ensp;3. percentage16_Donald_Trump: percentage of votes Donald Trump got in 2016  
+&ensp;&ensp;4. percentage16_Hillary_Clinton: percentage of votes Hilary Clinton got in 2016  
+&ensp;&ensp;5. total_votes16: total number of votes in 2016  
+&ensp;&ensp;6. percentage20_Donald_Trump: percentage of votes Donald Trump got in 2020  
+&ensp;&ensp;7. percentage20_Joe_Biden: percentage of votes Joe Biden got in 2020  
+&ensp;&ensp;8. total_votes20: total number of votes in 2020  
+&ensp;&ensp;9. lat: latitude coordinates  
+&ensp;&ensp;10. long: longitude coordinates  
+&ensp;&ensp;11. cases: COVID-19 cases  
+&ensp;&ensp;12. deaths: COVID-19 deaths  
+&ensp;&ensp;13. TotalPop: Total population  
+&ensp;&ensp;14. Hispanic: percent of population that is Hispanic/Latino  
+&ensp;&ensp;15. White: percent of population that is white  
+&ensp;&ensp;16. Black: percent of population that is black  
+&ensp;&ensp;17. Native: percent of population that is Native American or Native Alaskan  
+&ensp;&ensp;18. Asian: percent of population that is Asian  
+&ensp;&ensp;19. Pacific: percent of population that is Native Hawaiian or Pacific Islander  
+&ensp;&ensp;20. Income: median household income  
+&ensp;&ensp;21. IncomePerCap: income per capita  
+&ensp;&ensp;22. Poverty: percent of population under poverty level  
+&ensp;&ensp;23. Professional: percent of population employed in management, business, science and arts  
+&ensp;&ensp;24. Service: percent of population employed in service jobs  
+&ensp;&ensp;25. Office: percent of population employed in sales and office jobs  
+&ensp;&ensp;26. Construction: percent of population employed in natural resources, construction and maintenance  
+&ensp;&ensp;27. Production: percent of population employed in production, transportation and material movement  
+&ensp;&ensp;28. Drive: percent commuting alone in a car, van, or truck  
+&ensp;&ensp;29. Carpool: percent carpooling in a car, van, or truck  
+&ensp;&ensp;30. Transit: percent commuting on public transportation  
+&ensp;&ensp;31. Walk: percent walking to work OtherTransp percent commuting via other means  
+&ensp;&ensp;32. WorkAtHome: percent working at home  
+&ensp;&ensp;33. MeanCommute: Mean commute time (minutes)
+&ensp;&ensp;34. PublicWork: percent of population employed in public jobs  
+&ensp;&ensp;35. SelfEmployed: percent of population self-employed  
+&ensp;&ensp;36. FamilyWork: percent of population in unpaid family work  
+&ensp;&ensp;37. Unemployment: unemployment rate (percent)  
+
+```{r, results='hide'}
+df <- data[-c(1,7:8,12:13,19:20,27,29,31,33,46)]
+summary(df)
+```
+&ensp;&ensp;  
+
+----------------------------PIE---------------------------------
+
+```{r}
+attach(data)
+
+#works
+df.wk <- data.frame(
+  group = c("Professional", "Service", "Office", "Construction", "Production"),
+  value = c(sum(TotalPop*Professional), sum(TotalPop*Service), sum(TotalPop*Office), sum(TotalPop*Construction), sum(TotalPop*Production))
+  )
+
+df.wk[2]<-round(100*df.wk[2]/sum(df.wk[2]),digits = 2)
+df.wk2 <- df.wk %>% 
+  mutate(csum = rev(cumsum(rev(value))), 
+         pos = value/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), value/2, pos))
+
+ggplot(df.wk, aes(x = "" , y = value, fill = fct_inorder(group))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Pastel1") +
+  geom_label_repel(data = df.wk2,
+                   aes(y = pos, label = paste0(value, "%")),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
+  guides(fill = guide_legend(title = "Group")) +
+  theme_void()
+
+
+
+#population
+df.pop <- data.frame(
+  group = c("White", "Hispanic", "Black", "Asian", "Native", "Pacific"),
+  value = c(sum(data$TotalPop*White), sum(data$TotalPop*Hispanic), sum(data$TotalPop*Black), sum(data$TotalPop*Asian), sum(data$TotalPop*Native), sum(data$TotalPop*Pacific))
+)
+
+df.pop[2]<-round(100*df.pop[2]/sum(df.pop[2]),digits = 2)
+df.pop2 <- df.pop %>% 
+  mutate(csum = rev(cumsum(rev(value))), 
+         pos = value/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), value/2, pos))
+
+ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Pastel1") +
+  geom_label_repel(data = df.pop2,
+                   aes(y = pos, label = paste0(value, "%")),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
+  guides(fill = guide_legend(title = "Group")) +
+  theme_void()
+
+
+
+#transport
+df.tr <- data.frame(
+  group = c("Drive", "Carpool", "Transit", "Walk", "OtherTransport"),
+  value = c(sum(data$TotalPop*Drive), sum(data$TotalPop*Carpool),
+            sum(data$TotalPop*Transit), sum(data$TotalPop*Walk)
+            , sum(data$TotalPop*OtherTransp))
+)
+df.tr[2]<-round(100*df.tr[2]/sum(df.tr[2]),digits = 2)
+df.tr2 <- df.tr %>% 
+  mutate(csum = rev(cumsum(rev(value))), 
+         pos = value/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), value/2, pos))
+ggplot(df.tr, aes(x = "" , y = value, fill = fct_inorder(group))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Pastel1") +
+  geom_label_repel(data = df.tr2,
+                   aes(y = pos, label = paste0(value, "%")),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
+  guides(fill = guide_legend(title = "Group")) +
+  theme_void()
+```
+
+
+--------------------------------------MAPS--------------------------------------
+```{r, results='hide', warning=FALSE, message= FALSE}
+
+options(repr.plot.width = 17, repr.plot.height = 9)
+prov.usa <- map_data("state")
+prov.abb <- data.frame(state = state.name, Abb = state.abb)
+prov.abb2<-prov.abb
+prov.abb2$state<-tolower(prov.abb2$state)
+prov.election <- data %>% 
+  group_by(state) %>% 
+  summarise(votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
+            votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
+  ungroup() %>% 
+  gather(Candidate, Votes, -state) %>% 
+  mutate(Party = factor(if_else(Candidate == "votes16_Hillary_Clinton", "Democrat", "Republican"))) %>% 
+  left_join(prov.abb2) %>% 
+  rename("region" = state)
+prov.election2 <- prov.election %>% 
+  group_by(region, Abb) %>% 
+  summarise(Votes = max(Votes)) %>% 
+  ungroup() %>% 
+  inner_join(prov.election)
+prov.election2<-prov.election2[,-2]
+colnames(prov.abb2)[1]<-"region"
+colnames(prov.election2)[1]<-"Abb"
+prov.election3<-left_join(prov.election2,prov.abb2)
+prov.usa_election <- left_join(prov.usa, prov.election3) %>% 
+  filter(!is.na(Party))
+map.us.16<-ggplot(data = prov.usa_election, aes(x = long, y = lat),color = prov.usa_election$Party)+
+  geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) + scale_fill_manual(values = alpha(c("blue2", "red3"), 1))
+prov.abb <- data.frame(state = state.name, Abb = state.abb)
+prov.abb2<-prov.abb
+prov.abb2$state<-tolower(prov.abb2$state)
+prov.election2020 <- data %>% 
+  group_by(state) %>% 
+  summarise(votes20_Joe_Biden = sum(votes20_Joe_Biden),
+            votes20_Donald_Trump = sum(votes20_Donald_Trump)) %>% 
+  ungroup() %>% 
+  gather(Candidate, Votes, -state) %>% 
+  mutate(Party = factor(if_else(Candidate == "votes20_Joe_Biden", "Democrat", "Republican"))) %>% 
+  left_join(prov.abb2) %>% 
+  rename("region" = state)
+prov.election20202 <- prov.election2020 %>% 
+  group_by(region, Abb) %>% 
+  summarise(Votes = max(Votes)) %>% 
+  ungroup() %>% 
+  inner_join(prov.election2020)
+prov.election20202<-prov.election20202[,-2]
+colnames(prov.abb2)[1]<-"region"
+colnames(prov.election20202)[1]<-"Abb"
+prov.election20203<-left_join(prov.election20202,prov.abb2)
+prov.usa_election2020 <- left_join(prov.usa, prov.election20203) %>% 
+  filter(!is.na(Party))
+map.us.20<-ggplot(data = prov.usa_election2020, aes(x = long, y = lat),color = prov.usa_election2020$Party)+
+  geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) + scale_fill_manual(values = alpha(c("blue2", "red3"), 1))
+prov.data2 <- data %>% 
+  group_by(state) %>% 
+  summarise(Black = sum(Black*TotalPop),
+            Hispanic=sum(Hispanic*TotalPop),
+            Asian=sum(Asian*TotalPop),
+            Unemployment = sum(Unemployment*TotalPop),
+            votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
+            votes16_Donald_Trump = sum(votes16_Donald_Trump),
+            TotalPop = sum(TotalPop)) %>% 
+  ungroup() %>% 
+  rename("region" = state)
+prov.data2$Black<- prov.data2$Black/prov.data2$TotalPop
+prov.data2$Hispanic<- prov.data2$Hispanic/prov.data2$TotalPop
+prov.data2$Asian<- prov.data2$Asian/prov.data2$TotalPop
+prov.data2$Unemployment<- prov.data2$Unemployment/prov.data2$TotalPop
+colnames(prov.abb2)[1]<-"Abb"
+colnames(prov.abb2)[2]<-"region"
+prov.data3<-left_join(prov.data2,prov.abb2)
+colnames(prov.data3)[1]<-"Abb"
+colnames(prov.data3)[9]<-"region"
+prov.usa_data <- left_join(prov.usa, prov.data3) 
+
+map.pop<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$TotalPop)+
+  geom_polygon(aes(group = group, fill = TotalPop),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"TotalPop", low="White", high = "deepskyblue4")
+
+map.black<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Black)+
+  geom_polygon(aes(group = group, fill = Black),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Black", low="White", high = "Black")
+
+map.hisp<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Hispanic)+
+  geom_polygon(aes(group = group, fill = Hispanic),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Hispanic", low="White", high = "coral3")
+
+map.asian<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Asian)+
+  geom_polygon(aes(group = group, fill = Asian),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Asian", low="White", high = "darkgoldenrod")
+
+map.unemp<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Unemployment)+
+  geom_polygon(aes(group = group, fill = Unemployment),color = "gray90", size = 0.1) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Unemployment", low="White", high = "brown")
+
+map.us.16
+map.us.20
+map.pop
+map.black
+map.hisp
+map.asian
+map.unemp
+
+#Counties
+data %>% 
+  group_by(state) %>% 
+  mutate(fips = fips(state = first(state), county = county)) -> FIPS.data
+
+plot_usmap(data = FIPS.data, values = "Party20", include = c("AR", "LA", "TN", "MS", "NC", "SC")) + 
+  scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
+  theme(legend.position = "right")
+
+
+plot_usmap(data = FIPS.data, values = "Black", include = c("AR", "LA", "TN", "MS", "NC", "SC")) + 
+  scale_fill_continuous(low = "white", high = "red", name = "Black (2017)", label = scales::comma) + 
+  labs(title = "South-eastern US - Black", subtitle = "These are the states in the Pacific Timezone.") +
+  theme(legend.position = "right")
+
+plot_usmap(data = FIPS.data, values = "Party20", include = "NY") + 
+  scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
+  theme(legend.position = "right")
+
+par(mfrow=c(1,1))
+plot(White,log(TotalPop),col=Party20)
+plot(Black,log(TotalPop),col=Party20)
+plot(Hispanic,log(TotalPop),col=Party20)
+plot(Asian,log(TotalPop),col=Party20)
+
+```
+
+-------------------------------REGRESSIONS--------------------------------------
+
+```{r,  warning=FALSE, message= FALSE}
+#regression_here
+
+#correggere "v" e data <- df
+v<-c(percentage20_Joe_Biden>percentage20_Donald_Trump)
+regfit.full <- regsubsets(v~., data=data[-c(1:13,19:20,27,29,31,33,46,52,53)], really.big = T,nvmax = 34)
+reg.summary <- summary(regfit.full)
+reg.summary$outmat
+par(mfrow=c(2,2))
+plot(reg.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
+plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
+which.max(reg.summary$adjr2)
+points(which.max(reg.summary$adjr2),reg.summary$adjr2[which.max(reg.summary$adjr2)], col="red",cex=2,pch=20)
+# Mallow's Cp with its smallest value
+plot(reg.summary$cp,xlab="Number of Variables",ylab="Cp",type='l')
+which.min(reg.summary$cp)
+points(which.min(reg.summary$cp),reg.summary$cp[which.min(reg.summary$cp)],col="red",cex=2,pch=20)
+# BIC with its smallest value
+plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
+which.min(reg.summary$bic)
+points(which.min(reg.summary$bic),reg.summary$bic[which.min(reg.summary$bic)],col="red",cex=2,pch=20)
+par(mfrow=c(1,1))
+plot(regfit.full,scale="r2", col="#006699")
+plot(regfit.full,scale="adjr2", col="#006699")
+plot(regfit.full,scale="Cp", col="#006699")
+plot(regfit.full,scale="bic", col="#006699")
+
+
+```
+&ensp;&ensp; 
+
+```{r, results='hide', warning=FALSE, message= FALSE}
+#ridge regression
+par(mfrow=c(1,2))
+
+X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
+y<-percentage20_Joe_Biden
+grid.ridge<-10^seq(2,-4,length=100)
+ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
+plot(ridge.mod, xvar="lambda")
+
+
+
+train <- sample(1:nrow(X),nrow(X)/2)
+test<-(-train)
+y.test<-y[test]
+ridge.pred<-predict(ridge.mod,s=4,newx = X[test,],type = "response")
+mean((ridge.pred-y.test)^2)
+
+
+#lm(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)],subset = train)
+predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
+
+
+# use cross-validation to choose the value of lambda 
+
+cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0,lambda = grid.ridge, nfold=10)
+
+cv.out$cvm
+summary(cv.out$lambda)
+
+plot(cv.out)
+i.bestlam <- which.min(cv.out$cvm)
+i.bestlam 
+bestlam <- cv.out$lambda[i.bestlam]
+bestlam
+cv.out$cvm[i.bestlam]
+
+
+ridge.pred <- predict(ridge.mod, s = bestlam,
+                      newx = X[test, ])
+mean((ridge.pred - y.test)^2)
+
+
+#lasso regression code
+X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
+y<-percentage20_Joe_Biden
+grid.lasso<-10^seq(-0.5,-6,length=100)
+lasso.mod<-glmnet(X,y,alpha = 1,lambda = grid.lasso)
+plot(lasso.mod, xvar="lambda")
+
+
+
+train <- sample(1:nrow(X),nrow(X)/2)
+test<-(-train)
+y.test<-y[test]
+lasso.pred<-predict(lasso.mod,s=4,newx = X[test,],type = "response")
+mean((lasso.pred-y.test)^2)
+
+
+predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
+
+
+# use cross-validation to choose the value of lambda 
+
+cv.out.lasso <- cv.glmnet(X[train, ], y[train], alpha = 1,lambda = grid.lasso, nfold=10)
+
+cv.out.lasso$lambda
+summary(cv.out.lasso$lambda)
+
+plot(cv.out.lasso)
+i.bestlam.lasso <- which.min(cv.out.lasso$cvm)
+i.bestlam.lasso
+bestlam.lasso <- cv.out.lasso$lambda[i.bestlam.lasso]
+bestlam.lasso
+
+cv.out.lasso$cvm[i.bestlam.lasso]
+
+lasso.pred <- predict(lasso.mod, s = bestlam.lasso,
+                      newx = X[test, ])
+mean((lasso.pred - y.test)^2)
+par(mfrow=c(1,1))
+
+```
+&ensp;&ensp; 
+
+```{r, warning=FALSE, message= FALSE}
+###############################
+# LOGISTIC CLASSIFIER
+##############################
+
+# logistic classifier
+mod.out <- glm(Party20 ~. , data=data[-c(1:13,19:20,27,29,31,33,52,53)], family = binomial)
+logistic.prob <- predict(mod.out, type="response")
+
+logistic.pred <- rep("Democrat", 3046)
+logistic.pred[logistic.prob>0.5] <- "Republican"
+
+
+# decision boundary
+summary(mod.out)
+beta <- coefficients(mod.out)
+
+# confusion matrix
+table(logistic.pred, Party20)
+
+# trivial classifier 
+trivial.pred <- rep("Democrat", 3046)
+table(trivial.pred, Party20)
+
+# threshold=0.2
+logistic.pred <- rep("Democrat", 3046)
+logistic.pred[logistic.prob>0.2] <- "Republican"
+table(logistic.pred, Party20)
+
+CM <- table(logistic.pred, Party20)
+
+# rearrange rows and columns to match 
+# the confusion matrix on the slides
+CM <- CM[2:1, 2:1]
+
+# add margins to the confusion matrix
+CM <- addmargins(CM, margin = c(1, 2))
+CM
+
+# FPR: False Positive Rate = FP/N
+#################################
+
+fpr <- CM["Republican", "Democrat"]/CM["Sum", "Democrat"]   
+fpr 
+
+# TNR : True negative rate = TN/N = (1 - FPR)  
+# TNR = Specificity, which refers to Pr(negative | negative)
+
+specif <- 1 - fpr
+specif
+
+# TPR: True Positive Rate = TP/P
+# TPR = Sensitivity, which refers to Pr(positive | positive)
+############################################################
+
+tpr <- CM["Republican", "Republican"]/CM["Sum", "Republican"]   
+tpr 
+
+# ROC curve 
+# If labels are "0" and "1" then "0"=negative and "1"=positive
+# levels = negative (0's) as first element and positive (1's) as second
+roc.out <- roc(Party20, logistic.prob, levels=c("Democrat", "Republican"))
+
+# different ways of plotting the ROC curve (check labels of the axes)
+plot(roc.out,  print.auc=TRUE, legacy.axes=TRUE, xlab="False positive rate", ylab="True positive rate")
+plot(roc.out, legacy.axes=TRUE)
+plot(roc.out)
+
+auc(roc.out)
+plot(roc.out,  print.auc=TRUE, legacy.axes=TRUE, xlab="False positive rate", ylab="True positive rate")
+
+# specificity and sensitivity for a given threshold
+coords(roc.out, 0.2)
+
+# threshold that maximises the sum of sensitivity and specificity
+coords(roc.out, "best")
+
+```
 
 ---
 title: "Elections, COVID and Demographic Data"
