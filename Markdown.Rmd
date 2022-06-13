@@ -1,8 +1,10 @@
 ---
-title: "Elections, COVID and Demographic Data"
+title: "Elections, COVID and Demographic Data 2"
 author: "Bissacco, Sartori, Sboarina"
 date: "21/06/2022"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -125,23 +127,28 @@ summary(df)
 ```
 &ensp;&ensp;  
 
-----------------------------PIE---------------------------------
+##Data visualization
+
+The analysis starts with the visualization of the data through the plotting of some significant results. 
 
 ```{r}
 attach(data)
 
-#works
+#employment sector
+
 df.wk <- data.frame(
   group = c("Professional", "Service", "Office", "Construction", "Production"),
   value = c(sum(TotalPop*Professional), sum(TotalPop*Service), sum(TotalPop*Office), sum(TotalPop*Construction), sum(TotalPop*Production))
   )
 
+#from percentages to quantities
 df.wk[2]<-round(100*df.wk[2]/sum(df.wk[2]),digits = 2)
 df.wk2 <- df.wk %>% 
   mutate(csum = rev(cumsum(rev(value))), 
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
+#employment sector pie
 ggplot(df.wk, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
@@ -154,18 +161,20 @@ ggplot(df.wk, aes(x = "" , y = value, fill = fct_inorder(group))) +
 
 
 
-#population
+#population by ethnicity
 df.pop <- data.frame(
   group = c("White", "Hispanic", "Black", "Asian", "Native", "Pacific"),
   value = c(sum(data$TotalPop*White), sum(data$TotalPop*Hispanic), sum(data$TotalPop*Black), sum(data$TotalPop*Asian), sum(data$TotalPop*Native), sum(data$TotalPop*Pacific))
 )
 
+#from percentages to quantities
 df.pop[2]<-round(100*df.pop[2]/sum(df.pop[2]),digits = 2)
 df.pop2 <- df.pop %>% 
   mutate(csum = rev(cumsum(rev(value))), 
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
 
+#population ethnicity pie
 ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
@@ -178,18 +187,22 @@ ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
 
 
 
-#transport
+#transport division
 df.tr <- data.frame(
   group = c("Drive", "Carpool", "Transit", "Walk", "OtherTransport"),
   value = c(sum(data$TotalPop*Drive), sum(data$TotalPop*Carpool),
             sum(data$TotalPop*Transit), sum(data$TotalPop*Walk)
             , sum(data$TotalPop*OtherTransp))
 )
+
+#from percentages to quantities
 df.tr[2]<-round(100*df.tr[2]/sum(df.tr[2]),digits = 2)
 df.tr2 <- df.tr %>% 
   mutate(csum = rev(cumsum(rev(value))), 
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
+
+#transport division pie
 ggplot(df.tr, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
@@ -338,7 +351,7 @@ plot(Asian,log(TotalPop),col=Party20)
 
 -------------------------------REGRESSIONS--------------------------------------
 
-```{r,  warning=FALSE, message= FALSE}
+```{r,  warning=FALSE}
 #regression_here
 
 #correggere "v" e data <- df
@@ -369,7 +382,7 @@ plot(regfit.full,scale="bic", col="#006699")
 ```
 &ensp;&ensp; 
 
-```{r, results='hide', warning=FALSE, message= FALSE}
+```{r,  warning=FALSE}
 #ridge regression
 par(mfrow=c(1,2))
 
@@ -454,7 +467,7 @@ par(mfrow=c(1,1))
 ```
 &ensp;&ensp; 
 
-```{r, warning=FALSE, message= FALSE}
+```{r, warning=FALSE}
 ###############################
 # LOGISTIC CLASSIFIER
 ##############################
