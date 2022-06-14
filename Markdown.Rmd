@@ -134,6 +134,16 @@ The analysis starts with the visualization of the data through the plotting of s
 ```{r}
 attach(data)
 
+par(mfrow=c(1, 1))
+hist(log(TotalPop), col='deepskyblue4',breaks = 40, main = 'LogPopulation distribution Frequency')
+
+boxplot(log(TotalPop)[Party20=='Democrat'], 
++         log(TotalPop)[Party20=='Republican'], 
++         col=c('blue', 'red'),
++         names=c("Democrats", "Republicans"), 
++         ylab = 'Log(TotalPop)')
+
+
 #employment sector
 
 df.wk <- data.frame(
@@ -327,18 +337,23 @@ data %>%
   group_by(state) %>% 
   mutate(fips = fips(state = first(state), county = county)) -> FIPS.data
 
-plot_usmap(data = FIPS.data, values = "Party20", include = c("AR", "LA", "TN", "MS", "NC", "SC")) + 
+plot_usmap(data = FIPS.data, values = "Party20", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
   scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
   theme(legend.position = "right")
 
+plot_usmap(data = FIPS.data, values = "Black", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
+  scale_fill_continuous(low = "white", high = "black", name = "Black (2017)", label = scales::comma) + 
+  theme(legend.position = "right")
 
-plot_usmap(data = FIPS.data, values = "Black", include = c("AR", "LA", "TN", "MS", "NC", "SC")) + 
-  scale_fill_continuous(low = "white", high = "red", name = "Black (2017)", label = scales::comma) + 
-  labs(title = "South-eastern US - Black", subtitle = "These are the states in the Pacific Timezone.") +
+plot_usmap(data = FIPS.data, values = "Unemployment", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
+  scale_fill_continuous(low = "white", high = "red", name = "Unemployment (2017)", label = scales::comma) + 
   theme(legend.position = "right")
 
 plot_usmap(data = FIPS.data, values = "Party20", include = "NY") + 
   scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
+  theme(legend.position = "right")
+plot_usmap(data = FIPS.data, values = "TotalPop", include = "NY") + 
+  scale_fill_continuous(low = "white", high = "deepskyblue4", name = "Population (2017)", label = scales::comma) + 
   theme(legend.position = "right")
 
 par(mfrow=c(1,1))
