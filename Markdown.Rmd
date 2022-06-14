@@ -137,11 +137,7 @@ attach(data)
 par(mfrow=c(1, 1))
 hist(log(TotalPop), col='deepskyblue4',breaks = 40, main = 'LogPopulation distribution Frequency')
 
-boxplot(log(TotalPop)[Party20=='Democrat'], 
-+         log(TotalPop)[Party20=='Republican'], 
-+         col=c('blue', 'red'),
-+         names=c("Democrats", "Republicans"), 
-+         ylab = 'Log(TotalPop)')
+boxplot(log(TotalPop)[Party20=='Democrat'], log(TotalPop)[Party20=='Republican'], col=c('blue', 'red'), names=c("Democrats", "Republicans"), ylab = 'Log(TotalPop)')
 
 
 #employment sector
