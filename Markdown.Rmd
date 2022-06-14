@@ -342,10 +342,18 @@ plot_usmap(data = FIPS.data, values = "Party20", include = "NY") +
   theme(legend.position = "right")
 
 par(mfrow=c(1,1))
-plot(White,log(TotalPop),col=Party20)
-plot(Black,log(TotalPop),col=Party20)
-plot(Hispanic,log(TotalPop),col=Party20)
-plot(Asian,log(TotalPop),col=Party20)
+ggplot(data, aes(x=White, y=log(TotalPop),colour=Party20, size=TotalPop )) +
+  geom_point(alpha=0.5) +   scale_color_manual(values = alpha(c("blue2", "red3"), 1)) + 
+  theme_bw()
+ggplot(data, aes(x=Black, y=log(TotalPop),colour=Party20, size=TotalPop )) +
+  geom_point(alpha=0.5) +   scale_color_manual(values = alpha(c("blue2", "red3"), 1)) + 
+  theme_bw()
+ggplot(data, aes(x=Hispanic, y=log(TotalPop),colour=Party20, size=TotalPop )) +
+  geom_point(alpha=0.5) +   scale_color_manual(values = alpha(c("blue2", "red3"), 1)) + 
+  theme_bw()
+ggplot(data, aes(x=Asian, y=log(TotalPop),colour=Party20, size=TotalPop )) +
+  geom_point(alpha=0.5) +   scale_color_manual(values = alpha(c("blue2", "red3"), 1)) + 
+  theme_bw()
 
 ```
 
