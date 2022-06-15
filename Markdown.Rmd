@@ -137,53 +137,22 @@ summary(df)
 ```
 &ensp;&ensp;    
 
-##Data visualization
+## Data visualization
 
-The analysis starts with the visualization of the data through the plotting of some significant results. 
+In this section we are going to see how ours features are distributed along the population.
+We start with three pie chart that represent three of the categories considered in the census of 2017: ethnicity, employment sector and usual method of transport.
 
 ```{r}
 attach(data)
 
-par(mfrow=c(1, 1))
-hist(log(TotalPop), col='deepskyblue4',breaks = 40, main = 'LogPopulation distribution Frequency')
-
-boxplot(log(TotalPop)[Party20=='Democrat'], log(TotalPop)[Party20=='Republican'], col=c('blue', 'red'), names=c("Democrats", "Republicans"), ylab = 'Log(TotalPop)')
-
-
-#employment sector
-
-df.wk <- data.frame(
-  group = c("Professional", "Service", "Office", "Construction", "Production"),
-  value = c(sum(TotalPop*Professional), sum(TotalPop*Service), sum(TotalPop*Office), sum(TotalPop*Construction), sum(TotalPop*Production))
-  )
-
-#from percentages to quantities
-df.wk[2]<-round(100*df.wk[2]/sum(df.wk[2]),digits = 2)
-df.wk2 <- df.wk %>% 
-  mutate(csum = rev(cumsum(rev(value))), 
-         pos = value/2 + lead(csum, 1),
-         pos = if_else(is.na(pos), value/2, pos))
-
-#employment sector pie
-ggplot(df.wk, aes(x = "" , y = value, fill = fct_inorder(group))) +
-  geom_col(width = 1, color = 1) +
-  coord_polar(theta = "y") +
-  scale_fill_brewer(palette = "Pastel1") +
-  geom_label_repel(data = df.wk2,
-                   aes(y = pos, label = paste0(value, "%")),
-                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
-  guides(fill = guide_legend(title = "Group")) +
-  theme_void()
-
-
-
 #population by ethnicity
+
 df.pop <- data.frame(
   group = c("White", "Hispanic", "Black", "Asian", "Native", "Pacific"),
-  value = c(sum(data$TotalPop*White), sum(data$TotalPop*Hispanic), sum(data$TotalPop*Black), sum(data$TotalPop*Asian), sum(data$TotalPop*Native), sum(data$TotalPop*Pacific))
-)
+  value = c(sum(data$TotalPop*White), sum(data$TotalPop*Hispanic), sum(data$TotalPop*Black), sum(data$TotalPop*Asian), sum(data$TotalPop*Native), sum(data$TotalPop*Pacific)))
 
 #from percentages to quantities
+
 df.pop[2]<-round(100*df.pop[2]/sum(df.pop[2]),digits = 2)
 df.pop2 <- df.pop %>% 
   mutate(csum = rev(cumsum(rev(value))), 
@@ -191,6 +160,7 @@ df.pop2 <- df.pop %>%
          pos = if_else(is.na(pos), value/2, pos))
 
 #population ethnicity pie
+
 ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
@@ -200,18 +170,53 @@ ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
                    size = 4.5, nudge_x = 1, show.legend = FALSE) +
   guides(fill = guide_legend(title = "Group")) +
   theme_void()
+```
+&ensp;&ensp;  
 
+As expected the dominant ethnicity is the White one that represent 63% of the total population of the United States, the other mayor ethnicities are the Hispanic ethnicity 18.32%, Black ethnicity 12.44% and Asian ethnicity 5.44%.
 
+```{r}
+#employment sector
 
+df.wk <- data.frame(
+  group = c("Professional", "Service", "Office", "Construction", "Production"),
+  value = c(sum(TotalPop*Professional), sum(TotalPop*Service), sum(TotalPop*Office), sum(TotalPop*Construction), sum(TotalPop*Production)))
+
+#from percentages to quantities
+
+df.wk[2]<-round(100*df.wk[2]/sum(df.wk[2]),digits = 2)
+df.wk2 <- df.wk %>% 
+  mutate(csum = rev(cumsum(rev(value))), 
+         pos = value/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), value/2, pos))
+
+#employment sector pie
+
+ggplot(df.wk, aes(x = "" , y = value, fill = fct_inorder(group))) +
+  geom_col(width = 1, color = 1) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "Pastel1") +
+  geom_label_repel(data = df.wk2,
+                   aes(y = pos, label = paste0(value, "%")),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE) +
+  guides(fill = guide_legend(title = "Group")) +
+  theme_void()
+```
+&ensp;&ensp; 
+
+We can see that every class has a good representation, later we will see if a certain class of workers prefers a specific party.
+
+```{r}
 #transport division
+
 df.tr <- data.frame(
   group = c("Drive", "Carpool", "Transit", "Walk", "OtherTransport"),
   value = c(sum(data$TotalPop*Drive), sum(data$TotalPop*Carpool),
             sum(data$TotalPop*Transit), sum(data$TotalPop*Walk)
-            , sum(data$TotalPop*OtherTransp))
-)
+            , sum(data$TotalPop*OtherTransp)))
 
 #from percentages to quantities
+
 df.tr[2]<-round(100*df.tr[2]/sum(df.tr[2]),digits = 2)
 df.tr2 <- df.tr %>% 
   mutate(csum = rev(cumsum(rev(value))), 
@@ -219,6 +224,7 @@ df.tr2 <- df.tr %>%
          pos = if_else(is.na(pos), value/2, pos))
 
 #transport division pie
+
 ggplot(df.tr, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
@@ -229,6 +235,41 @@ ggplot(df.tr, aes(x = "" , y = value, fill = fct_inorder(group))) +
   guides(fill = guide_legend(title = "Group")) +
   theme_void()
 ```
+&ensp;&ensp; 
+
+The transport data correlates to the states geographical morphology: outside the big cities distances became very big so a use of a car by over the 90% of the population (Drive and Carpool) is justified.
+
+
+Now we analyse the characteristics of the counties: population and winning party.
+
+```{r}
+# distribution of the population along the counties
+
+par(mfrow=c(1, 1))
+hist(log10(TotalPop), col='deepskyblue4',breaks = 40, main = 'LogPopulation - distribution Frequency')
+```
+&ensp;&ensp; 
+
+This histogram represent the size of the counties, we can see that most of the counties count less than 100 000 inhabitants and the counties with over 1 000 000 inhabitants are very few. 
+
+```{r}
+#winning party for county in 2020
+
+table(Party20)
+
+```
+
+
+We know that he election were won by the Republican party in 2020, but, as we just saw, they won in almost a fifth of counties, this fact suggest that the distribution of the population is not the same between republican counties and democrat counties. Now we are going to investigate this fact. 
+
+```{r}
+# distribution of the population along the counties per winning party
+
+boxplot(log(TotalPop)[Party20=='Democrat'], log(TotalPop)[Party20=='Republican'], col=c('blue', 'red'), names=c("Democrats", "Republicans"), ylab = 'Log(TotalPop)')
+
+```
+
+
 
 
 --------------------------------------MAPS--------------------------------------
