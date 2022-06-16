@@ -403,7 +403,7 @@ plot_usmap(data = FIPS.data, values = "Black", include = c("AL", "AR", "GA", "LA
 ```
 &ensp;&ensp;
 
-From these two maps is easy to see that our initial intuition was right: the counties with a higher presence of the Black ethnicity have a democratic leaning, but there are many other counties that have a more modest ethnic representation which voted Republican. The state result are based on all citizens votes so it can be a bit misleading using the state result to make assumption on their counties because the counties contribution is based on their population.  
+From these two maps is easy to see that our initial intuition was right: the counties with a higher presence of Black have a democratic leaning, but many other counties that have a more modest ethnic representation voted Republican. The state results are based on all citizens votes so it can be a bit misleading to use just a state result to make assumption on its counties.
 Now we are going to analyze another extreme case: the state of New York, were there are a small number of extremely populated areas (mainly the city of New York) and a lot of counties that count very few citizens.
 
 ```{r}
@@ -419,7 +419,7 @@ plot_usmap(data = FIPS.data, values = "TotalPop", include = "NY") +
 ```
 &ensp;&ensp;
 
-In the state of New York the Democratic party won with a big lead of votes, but watching the results map and the table they actually won in 13 counties against the 49 of the republicans, but from the second map is easy to see that most of the population is concentrated in the counties that form the city of New York that have a democratic leaning while the republican counties (except the south-eastern ones) count a really low population with respect to the most urbanized areas.
+In the state of New York the Democratic party won with a big lead of votes, but watching the results map it would appear that republicans won (in fact they got 49 counties out of 62). This is due to the amount of population concentrated only in few counties: urbanized areas are extremely populated so they can easily overturn the outcome in a state. For example the population in New York City alone is around 40% of the entire state and this allowed the victory of the Democratic Party even though they lost in 80% of the counties.
 
 
 
