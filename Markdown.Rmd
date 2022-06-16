@@ -139,8 +139,8 @@ summary(df)
 
 ## Data visualization
 
-In this section we are going to see how ours features are distributed along the population.
-We start with three pie chart that represent three of the categories considered in the census of 2017: ethnicity, employment sector and usual method of transport.
+In this section we are going to see how our features are distributed among the population.
+We start with three pie charts that represent three of the categories considered in the census of 2017: the ethnicity, the employment sector and the usual method of transport.
 
 ```{r}
 attach(data)
@@ -173,7 +173,7 @@ ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
 ```
 &ensp;&ensp;  
 
-As expected the dominant ethnicity is the White one that represent 63% of the total population of the United States, the other mayor ethnicities are the Hispanic ethnicity 18.32%, Black ethnicity 12.44% and Asian ethnicity 5.44%.
+As expected the dominant ethnicity is the White one that represent 63% of the total population of the United States. The other mayor ethnicities are Hispanic (18.32%), Black (12.44%) and the Asian (5.44%).
 
 ```{r}
 #employment sector
@@ -204,7 +204,8 @@ ggplot(df.wk, aes(x = "" , y = value, fill = fct_inorder(group))) +
 ```
 &ensp;&ensp; 
 
-We can see that every class has a good representation, later we will see if a certain class of workers prefers a specific party.
+We can see that every class has a good representation.  
+Later we will see if a certain class of workers prefers a specific party.
 
 ```{r}
 #transport division
@@ -237,7 +238,7 @@ ggplot(df.tr, aes(x = "" , y = value, fill = fct_inorder(group))) +
 ```
 &ensp;&ensp; 
 
-The transport data correlates to the states geographical morphology: outside the big cities distances became very big so a use of a car by over the 90% of the population (Drive and Carpool) is justified.
+The transport data is correlated to the states geographical morphology: outside the big cities distances become huge so the use of a car by over the 90% of the population (Drive and Carpool) is justified.
 
 
 Now we analyse the characteristics of the counties: population and winning party.
@@ -250,7 +251,7 @@ hist(log10(TotalPop), col='deepskyblue4',breaks = 40, main = 'LogPopulation - di
 ```
 &ensp;&ensp; 
 
-This histogram represent the size of the counties, we can see that most of the counties count less than 100 000 inhabitants and the counties with over 1 000 000 inhabitants are very few. 
+This histogram represents the size of the counties. We can see that most of the counties have less than 100 000 inhabitants and the counties with over 1 000 000 inhabitants are very few. 
 
 ```{r}
 #winning party for county in 2020
@@ -260,7 +261,7 @@ table(Party20)
 ```
 
 
-We know that he election were won by the Republican party in 2020, but, as we just saw, they won in almost a fifth of counties, this fact suggest that the distribution of the population is not the same between republican counties and democrat counties. Now we are going to investigate this fact. 
+We know that the election were won by the Democratic party in 2020, but, as we just saw, they won in almost 20% of the counties. This fact suggest that the distribution of the population is not the same between republican counties and democrat counties. Now we are going to investigate this fact. 
 
 ```{r}
 # distribution of the population along the counties per winning party
@@ -268,41 +269,20 @@ We know that he election were won by the Republican party in 2020, but, as we ju
 boxplot(log(TotalPop)[Party20=='Democrat'], log(TotalPop)[Party20=='Republican'], col=c('blue', 'red'), names=c("Democrats", "Republicans"), ylab = 'Log(TotalPop)')
 
 ```
+&ensp;&ensp;
+
+As suspected the distribution is not the same; the democratic counties in general counts more inhabitants and also the biggest counties are all democratic.
+
+&ensp;&ensp;
+
+Now we want to understand how the U.S.population is distributed over the territory. With the help of some maps is easier to visualize the geographic areas with more ethnic diversity as well as other data as density of population and unemployment.
+We start with the map representing the 2020 elections results and then the others.
 
 
-
-
---------------------------------------MAPS--------------------------------------
 ```{r, results='hide', warning=FALSE, message= FALSE}
 
 options(repr.plot.width = 17, repr.plot.height = 9)
 prov.usa <- map_data("state")
-prov.abb <- data.frame(state = state.name, Abb = state.abb)
-prov.abb2<-prov.abb
-prov.abb2$state<-tolower(prov.abb2$state)
-prov.election <- data %>% 
-  group_by(state) %>% 
-  summarise(votes16_Hillary_Clinton = sum(votes16_Hillary_Clinton),
-            votes16_Donald_Trump = sum(votes16_Donald_Trump)) %>% 
-  ungroup() %>% 
-  gather(Candidate, Votes, -state) %>% 
-  mutate(Party = factor(if_else(Candidate == "votes16_Hillary_Clinton", "Democrat", "Republican"))) %>% 
-  left_join(prov.abb2) %>% 
-  rename("region" = state)
-prov.election2 <- prov.election %>% 
-  group_by(region, Abb) %>% 
-  summarise(Votes = max(Votes)) %>% 
-  ungroup() %>% 
-  inner_join(prov.election)
-prov.election2<-prov.election2[,-2]
-colnames(prov.abb2)[1]<-"region"
-colnames(prov.election2)[1]<-"Abb"
-prov.election3<-left_join(prov.election2,prov.abb2)
-prov.usa_election <- left_join(prov.usa, prov.election3) %>% 
-  filter(!is.na(Party))
-map.us.16<-ggplot(data = prov.usa_election, aes(x = long, y = lat),color = prov.usa_election$Party)+
-  geom_polygon(aes(group = group, fill = Party),color = "gray90", size = 0.1) +
-  coord_map(projection = "albers", lat0 = 39, lat1 = 45) + scale_fill_manual(values = alpha(c("blue2", "red3"), 1))
 prov.abb <- data.frame(state = state.name, Abb = state.abb)
 prov.abb2<-prov.abb
 prov.abb2$state<-tolower(prov.abb2$state)
@@ -371,38 +351,21 @@ map.unemp<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_
   geom_polygon(aes(group = group, fill = Unemployment),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Unemployment", low="White", high = "brown")
 
-map.us.16
+
 map.us.20
 map.pop
 map.black
 map.hisp
 map.asian
 map.unemp
+```
+&ensp;&ensp;
 
-#Counties
-data %>% 
-  group_by(state) %>% 
-  mutate(fips = fips(state = first(state), county = county)) -> FIPS.data
+From what we saw until now, we can argue that the number of inhabitants and the presence of different ethnicities are in some form correlated with the political leaning of the state.
+Below we display the scatterplot regarding aforementioned data.
 
-plot_usmap(data = FIPS.data, values = "Party20", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
-  scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
-  theme(legend.position = "right")
 
-plot_usmap(data = FIPS.data, values = "Black", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
-  scale_fill_continuous(low = "white", high = "black", name = "Black (2017)", label = scales::comma) + 
-  theme(legend.position = "right")
-
-plot_usmap(data = FIPS.data, values = "Unemployment", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
-  scale_fill_continuous(low = "white", high = "red", name = "Unemployment (2017)", label = scales::comma) + 
-  theme(legend.position = "right")
-
-plot_usmap(data = FIPS.data, values = "Party20", include = "NY") + 
-  scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
-  theme(legend.position = "right")
-plot_usmap(data = FIPS.data, values = "TotalPop", include = "NY") + 
-  scale_fill_continuous(low = "white", high = "deepskyblue4", name = "Population (2017)", label = scales::comma) + 
-  theme(legend.position = "right")
-
+```{r}
 par(mfrow=c(1,1))
 ggplot(data, aes(x=White, y=log(TotalPop),colour=Party20, size=TotalPop )) +
   geom_point(alpha=0.5) +   scale_color_manual(values = alpha(c("blue2", "red3"), 1)) + 
@@ -416,8 +379,49 @@ ggplot(data, aes(x=Hispanic, y=log(TotalPop),colour=Party20, size=TotalPop )) +
 ggplot(data, aes(x=Asian, y=log(TotalPop),colour=Party20, size=TotalPop )) +
   geom_point(alpha=0.5) +   scale_color_manual(values = alpha(c("blue2", "red3"), 1)) + 
   theme_bw()
+```
+&ensp;&ensp;
+
+All the scatterplots indicate a similar relation between ethnicity, population and elections results: Republicans win in small counties with a low ethnic diversity (majority White), while Democrats win in large counties or where the ethnic diversity is high (with the exceptions of Hispanic population that is less incline to vote the Democratic party for historical reasons).
+
+This analysis suggest that where the black community is more present the Democratic party should win but the map show that the states with a higher percentage of Black ethnicity (the southern-eastern states) voted Republican. Now we will look at this phenomenon at a county-level. 
+
+```{r}
+#Counties
+
+data %>% 
+  group_by(state) %>% 
+  mutate(fips = fips(state = first(state), county = county)) -> FIPS.data
+
+plot_usmap(data = FIPS.data, values = "Party20", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
+  scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
+  theme(legend.position = "right")
+
+plot_usmap(data = FIPS.data, values = "Black", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
+  scale_fill_continuous(low = "white", high = "black", name = "Black (2017)", label = scales::comma) + 
+  theme(legend.position = "right")
+```
+&ensp;&ensp;
+
+From these two maps is easy to see that our initial intuition was right: the counties with a higher presence of the Black ethnicity have a democratic leaning, but there are many other counties that have a more modest ethnic representation which voted Republican. The state result are based on all citizens votes so it can be a bit misleading using the state result to make assumption on their counties because the counties contribution is based on their population.  
+Now we are going to analyze another extreme case: the state of New York, were there are a small number of extremely populated areas (mainly the city of New York) and a lot of counties that count very few citizens.
+
+```{r}
+
+plot_usmap(data = FIPS.data, values = "Party20", include = "NY") + 
+  scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
+  theme(legend.position = "right")
+table(Party20[state=='NY'])
+plot_usmap(data = FIPS.data, values = "TotalPop", include = "NY") + 
+  scale_fill_continuous(low = "white", high = "deepskyblue4", name = "Population (2017)", label = scales::comma) + 
+  theme(legend.position = "right")
 
 ```
+&ensp;&ensp;
+
+In the state of New York the Democratic party won with a big lead of votes, but watching the results map and the table they actually won in 13 counties against the 49 of the republicans, but from the second map is easy to see that most of the population is concentrated in the counties that form the city of New York that have a democratic leaning while the republican counties (except the south-eastern ones) count a really low population with respect to the most urbanized areas.
+
+
 
 -------------------------------REGRESSIONS--------------------------------------
 
