@@ -446,7 +446,6 @@ plot_usmap(data = FIPS.data, values = "TotalPop", include = "NY") +
 
 In the state of New York the Democratic party won with a big lead of votes, but watching the results map it would appear that republicans won (in fact they got 49 counties out of 62). This is due to the amount of population concentrated only in a few counties: urbanized areas are extremely populated so they can easily overturn the outcome in a state. For example the population in New York City alone is around 40% of the entire state and this allowed the victory of the Democratic Party even though they lost in 80% of the counties.
 
--------------------------------REGRESSIONS--------------------------------------
 
 ## Regression Analysis
 
@@ -597,7 +596,7 @@ Let us analyze the Best Subset method in order to compare the overall performanc
 ```{r}
 #Best Subset Method
 best_sub_df <-c(percentage20_Joe_Biden>percentage20_Donald_Trump)
-regfit.full <- regsubsets(best_sub_df~., data=data[-c(1:13,19:20,27,29,31,33,46,52,53)], really.big = T,nvmax = 31)
+regfit.full <- regsubsets(best_sub_df~., data=df, really.big = T,nvmax = 31)
 reg.summary <- summary(regfit.full)
 reg.summary$outmat
 ```
@@ -667,7 +666,7 @@ Lasso Regression (also called L1 regression) adds the “absolute value of magni
 
 ```{r}
 #lasso regression code
-X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
+X <- model.matrix(percentage20_Joe_Biden~.,df)
 y<-percentage20_Joe_Biden
 grid.lasso<-10^seq(-0.5,-6,length=100)
 lasso.mod<-glmnet(X,y,alpha = 1,lambda = grid.lasso)
@@ -728,7 +727,7 @@ The Ridge Regression (also called L2 regression) adds the “squared value of ma
 ```{r}
 #ridge regression
 
-X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
+X <- model.matrix(percentage20_Joe_Biden~.,df)
 y<-percentage20_Joe_Biden
 grid.ridge<-10^seq(2,-4,length=100)
 ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
