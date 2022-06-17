@@ -383,8 +383,28 @@ ggplot(data, aes(x=Asian, y=log(TotalPop),colour=Party20, size=TotalPop )) +
 &ensp;&ensp;
 
 All the scatterplots indicate a similar relation between ethnicity, population and elections results: Republicans win in small counties with a low ethnic diversity (majority White), while Democrats win in large counties or where the ethnic diversity is high (with the exceptions of Hispanic population that is less incline to vote the Democratic party for historical reasons).
+Now to verify if our assumptions are right we perform a t-test to see if democratic counties and republican counties behaves the same.
+```{r}
+# Population
 
-This analysis suggest that where the black community is more present the Democratic party should win but the map show that the states with a higher percentage of Black ethnicity (the southern-eastern states) voted Republican. Now we will look at this phenomenon at a county-level. 
+t.test(TotalPop[c(Party20=='Republican')],TotalPop[c(Party20=='Democrat')])
+
+# Black 
+
+t.test(Black[c(Party20=='Republican')],Black[c(Party20=='Democrat')])
+
+# Hispanic
+
+t.test(Hispanic[c(Party20=='Republican')],Hispanic[c(Party20=='Democrat')])
+
+# Asian
+
+t.test(Asian[c(Party20=='Republican')],Asian[c(Party20=='Democrat')])
+
+```
+We can see that all p-values are very small so we have strong evidence against the hypothesis that the two factions behaves the same.
+
+This analysis suggest that where the black community is more present the Democratic party should win but the map show that the states with a higher percentage of Black ethnicity (the south-eastern states) voted Republican. Now we will look at this phenomenon at a county-level. 
 
 ```{r}
 #Counties
