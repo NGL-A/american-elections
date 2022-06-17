@@ -707,7 +707,14 @@ cv.out.lasso$cvm[i.bestlam.lasso]
 
 lasso.pred <- predict(lasso.mod, s = bestlam.lasso,
                       newx = X[test, ])
+# mean squared error
+
 mean((lasso.pred - y.test)^2)
+
+# residual sum of squares
+
+lasso.RSS <- sum((lasso.pred - y.test)^2)
+lasso.RSS
 ```
 
 &ensp;&ensp; 
@@ -763,10 +770,35 @@ cv.out$cvm[i.bestlam]
 
 ridge.pred <- predict(ridge.mod, s = bestlam,
                       newx = X[test, ])
+# mean squared error
+
 mean((ridge.pred - y.test)^2)
+
+# residual sum of squares
+
+ridge.RSS <- sum((ridge.pred - y.test)^2)
+ridge.RSS
+```
+&ensp;&ensp;
+
+To determine which of the last two models has a better performance we can compare the two residual sum of squares:
+&ensp;&ensp;
+```{r}
+lasso.RSS
+ridge.RSS
+```
+&ensp;&ensp;
+We can notice that the residual sum of square is lower for the ridge regression than for the lasso regression so we can say that the ridge regression gives a better approximation of our problem.  
+From those regressions we can see that a variable that is taken into great consideration is 'Construction'. Using best subset method it appears already in the model with two variables and it has always relatively high coefficient in the regressions. To be certain of the relevance of this variable over the election result we decide to conduct a t-test over republican and democratic counties.
+&ensp;&ensp; 
+
+```{r}
+t.test(Construction[c(Party20=='Republican')],Construction[c(Party20=='Democrat')])
+
 ```
 
-&ensp;&ensp; 
+This test confirmed that 'Construction' is considerably different between democratic and republican counties on average so it is in some form related with the political leaning of a county. 
+
 
 ### Conclusion
 
