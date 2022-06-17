@@ -445,12 +445,114 @@ In the state of New York the Democratic party won with a big lead of votes, but 
 
 -------------------------------REGRESSIONS--------------------------------------
 
+## Regression Analysis
+
+Throughout this paragraph, we are going to operate a Regression analysis on different regression models. We will also introduce concepts as Variable Selection and Regularization.
+The aim is to create a model which is able to predict the outcome of the 2020 US elections. Therefore the object of our research is the variable "Party20" which we created to understand the party who won in each county.
+
+## Logistic Regression
+
+Let us introduce this Regression analysis by studying the "Logisitc Regression" and the information it gives us about our problem. The code below estimates a logistic regression model using the glm (generalized linear model) function. The output returns the beta coefficient for each variable, along with its standard error, z value and p value. The '*' symbols are an indication of importance for each variable. We are later going to expand this concept with the "Best Subset method", studying the variables importance relatively to the number of parameters we wish to have in our model.
+
+
+```{r, warning=FALSE}
+mod.out <- glm(Party20 ~. , data=df, family = binomial)
+logistic.prob <- predict(mod.out, type="response")
+logistic.pred <- rep("Democrat", 3046)
+logistic.pred[logistic.prob>0.5] <- "Republican"
+summary(mod.out)
+```
+&ensp;&ensp;
+
+From this tables we see the Confusion Matrix with a threshold of 0.5, the Confusion Matrix with a threshold of 0.2, the Trivial Classifier's output, the Confusion Matrix with rows and columns sums.
+
+```{r}
+beta <- coefficients(mod.out)
+
+# confusion matrix threshold=0.5
+table(logistic.pred, Party20)
+
+# confusion matrix threshold=0.2
+logistic.pred <- rep("Democrat", 3046)
+logistic.pred[logistic.prob>0.2] <- "Republican"
+table(logistic.pred, Party20)
+
+# trivial classifier 
+trivial.pred <- rep("Democrat", 3046)
+table(trivial.pred, Party20)
+
+CM <- table(logistic.pred, Party20)
+
+# Confusion Matrix with rows and columns sums
+CM <- CM[2:1, 2:1]
+CM <- addmargins(CM, margin = c(1, 2))
+CM
+```
+&ensp;&ensp; 
+
+Let us analyze the false positive, the true negative and the true positive rates. We will further investigate with a Roc Curve study.
+
+```{r}
+# false positive rate = FP/N
+fpr <- CM["Republican", "Democrat"]/CM["Sum", "Democrat"]   
+fpr 
+
+# true negative rate = TN/N
+specif <- 1 - fpr
+specif
+
+# true positive rate = TP/P
+tpr <- CM["Republican", "Republican"]/CM["Sum", "Republican"] 
+tpr 
+
+# Roc curve 
+roc.out <- roc(Party20, logistic.prob, levels=c("Democrat", "Republican"))
+
+```
+
+
+The Roc curve is a graphical representation of what happens in the previous table. The AUC (Area Under Curve) always has good values (close to 1) and is correctly shaped, meaning our predictions are fairly accurate.
+
+
+```{r}
+plot(roc.out,  print.auc=TRUE, legacy.axes=TRUE, xlab="False positive rate", ylab="True positive rate")
+
+# specificity and sensitivity for threshold of 0.5
+coords(roc.out, 0.5)
+
+# specificity and sensitivity for threshold of 0.2
+coords(roc.out, 0.2)
+
+# threshold that maximises the sum of sensitivity and specificity
+coords(roc.out, "best")
+```
+
+### Best Subset method
+
+Let us analyze the Best Subset method in order to compare the overall performance of the models Adjusted R2, Cp and BIC via a variable selection. The R function regsubsets() can be used to identify different best models of different sizes. We will be using a maximum of 31 variables for each model. A variable is included in a model if it is marked with the symbol '*'.
+
+```{r}
+#Best Subset Method
+best_sub_df <-c(percentage20_Joe_Biden>percentage20_Donald_Trump)
+regfit.full <- regsubsets(best_sub_df~., data=df, really.big = T,nvmax = 31)
+reg.summary <- summary(regfit.full)
+reg.summary$outmat
+```
+
+Another way to visualize this matrix is by using the following plots. If the space is filled by a blue square, the variable is included in the model using "x" parameters. We analyze the RSS, Adjusted R2, Cp and BIC models.
+
+
+
+
+
+
+
+
 ```{r,  warning=FALSE}
 #regression_here
-
-#correggere "v" e data <- df
+#correggere "v"
 v<-c(percentage20_Joe_Biden>percentage20_Donald_Trump)
-regfit.full <- regsubsets(v~., data=data[-c(1:13,19:20,27,29,31,33,46,52,53)], really.big = T,nvmax = 34)
+regfit.full <- regsubsets(v~., data=df, really.big = T,nvmax = 34)
 reg.summary <- summary(regfit.full)
 reg.summary$outmat
 par(mfrow=c(2,2))
@@ -471,171 +573,80 @@ plot(regfit.full,scale="r2", col="#006699")
 plot(regfit.full,scale="adjr2", col="#006699")
 plot(regfit.full,scale="Cp", col="#006699")
 plot(regfit.full,scale="bic", col="#006699")
-
-
 ```
 &ensp;&ensp; 
 
 ```{r,  warning=FALSE}
+#lasso regression code
+X <- model.matrix(percentage20_Joe_Biden~.,df)
+y<-percentage20_Joe_Biden
+grid.lasso<-10^seq(-0.5,-6,length=100)
+lasso.mod<-glmnet(X,y,alpha = 1,lambda = grid.lasso)
+plot(lasso.mod, xvar="lambda")
+train <- sample(1:nrow(X),nrow(X)/2)
+test<-(-train)
+y.test<-y[test]
+lasso.pred<-predict(lasso.mod,s=4,newx = X[test,],type = "response")
+mean((lasso.pred-y.test)^2)
+predict(lasso.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
+# use cross-validation to choose the value of lambda 
+cv.out.lasso <- cv.glmnet(X[train, ], y[train], alpha = 1,lambda = grid.lasso, nfold=10)
+cv.out.lasso$lambda
+summary(cv.out.lasso$lambda)
+plot(cv.out.lasso)
+i.bestlam.lasso <- which.min(cv.out.lasso$cvm)
+i.bestlam.lasso
+bestlam.lasso <- cv.out.lasso$lambda[i.bestlam.lasso]
+bestlam.lasso
+cv.out.lasso$cvm[i.bestlam.lasso]
+lasso.pred <- predict(lasso.mod, s = bestlam.lasso,
+                      newx = X[test, ])
+lasso.MSE <- mean((lasso.pred - y.test)^2)
+par(mfrow=c(1,1))
+
+lasso.MSE
+```
+
+```{r}
 #ridge regression
 par(mfrow=c(1,2))
-
-X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
+X <- model.matrix(percentage20_Joe_Biden~.,df)
 y<-percentage20_Joe_Biden
 grid.ridge<-10^seq(2,-4,length=100)
 ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
 plot(ridge.mod, xvar="lambda")
-
-
-
 train <- sample(1:nrow(X),nrow(X)/2)
 test<-(-train)
 y.test<-y[test]
 ridge.pred<-predict(ridge.mod,s=4,newx = X[test,],type = "response")
 mean((ridge.pred-y.test)^2)
-
-
 #lm(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)],subset = train)
 predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
-
-
 # use cross-validation to choose the value of lambda 
-
 cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0,lambda = grid.ridge, nfold=10)
-
 cv.out$cvm
 summary(cv.out$lambda)
-
 plot(cv.out)
 i.bestlam <- which.min(cv.out$cvm)
 i.bestlam 
 bestlam <- cv.out$lambda[i.bestlam]
 bestlam
 cv.out$cvm[i.bestlam]
-
-
 ridge.pred <- predict(ridge.mod, s = bestlam,
                       newx = X[test, ])
-mean((ridge.pred - y.test)^2)
-
-
-#lasso regression code
-X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
-y<-percentage20_Joe_Biden
-grid.lasso<-10^seq(-0.5,-6,length=100)
-lasso.mod<-glmnet(X,y,alpha = 1,lambda = grid.lasso)
-plot(lasso.mod, xvar="lambda")
-
-
-
-train <- sample(1:nrow(X),nrow(X)/2)
-test<-(-train)
-y.test<-y[test]
-lasso.pred<-predict(lasso.mod,s=4,newx = X[test,],type = "response")
-mean((lasso.pred-y.test)^2)
-
-
-predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
-
-
-# use cross-validation to choose the value of lambda 
-
-cv.out.lasso <- cv.glmnet(X[train, ], y[train], alpha = 1,lambda = grid.lasso, nfold=10)
-
-cv.out.lasso$lambda
-summary(cv.out.lasso$lambda)
-
-plot(cv.out.lasso)
-i.bestlam.lasso <- which.min(cv.out.lasso$cvm)
-i.bestlam.lasso
-bestlam.lasso <- cv.out.lasso$lambda[i.bestlam.lasso]
-bestlam.lasso
-
-cv.out.lasso$cvm[i.bestlam.lasso]
-
-lasso.pred <- predict(lasso.mod, s = bestlam.lasso,
-                      newx = X[test, ])
-mean((lasso.pred - y.test)^2)
-par(mfrow=c(1,1))
+ridge.MSE <- mean((ridge.pred - y.test)^2)
+ridge.MSE
 
 ```
 &ensp;&ensp; 
 
-```{r, warning=FALSE}
-###############################
-# LOGISTIC CLASSIFIER
-##############################
-
-# logistic classifier
-mod.out <- glm(Party20 ~. , data=data[-c(1:13,19:20,27,29,31,33,52,53)], family = binomial)
-logistic.prob <- predict(mod.out, type="response")
-
-logistic.pred <- rep("Democrat", 3046)
-logistic.pred[logistic.prob>0.5] <- "Republican"
 
 
-# decision boundary
-summary(mod.out)
-beta <- coefficients(mod.out)
 
-# confusion matrix
-table(logistic.pred, Party20)
 
-# trivial classifier 
-trivial.pred <- rep("Democrat", 3046)
-table(trivial.pred, Party20)
+--------------------CONCLUSIONS-------------------------
+#Abbiamo visto i vari modelli. Il best subset ci ha indicicato quello che con vari metodi di valutazione (+ dire che metodo dice cosa) che il modello bigliore varia tra quello con 20/30 features
 
-# threshold=0.2
-logistic.pred <- rep("Democrat", 3046)
-logistic.pred[logistic.prob>0.2] <- "Republican"
-table(logistic.pred, Party20)
-
-CM <- table(logistic.pred, Party20)
-
-# rearrange rows and columns to match 
-# the confusion matrix on the slides
-CM <- CM[2:1, 2:1]
-
-# add margins to the confusion matrix
-CM <- addmargins(CM, margin = c(1, 2))
-CM
-
-# FPR: False Positive Rate = FP/N
-#################################
-
-fpr <- CM["Republican", "Democrat"]/CM["Sum", "Democrat"]   
-fpr 
-
-# TNR : True negative rate = TN/N = (1 - FPR)  
-# TNR = Specificity, which refers to Pr(negative | negative)
-
-specif <- 1 - fpr
-specif
-
-# TPR: True Positive Rate = TP/P
-# TPR = Sensitivity, which refers to Pr(positive | positive)
-############################################################
-
-tpr <- CM["Republican", "Republican"]/CM["Sum", "Republican"]   
-tpr 
-
-# ROC curve 
-# If labels are "0" and "1" then "0"=negative and "1"=positive
-# levels = negative (0's) as first element and positive (1's) as second
-roc.out <- roc(Party20, logistic.prob, levels=c("Democrat", "Republican"))
-
-# different ways of plotting the ROC curve (check labels of the axes)
-plot(roc.out,  print.auc=TRUE, legacy.axes=TRUE, xlab="False positive rate", ylab="True positive rate")
-plot(roc.out, legacy.axes=TRUE)
-plot(roc.out)
-
-auc(roc.out)
-plot(roc.out,  print.auc=TRUE, legacy.axes=TRUE, xlab="False positive rate", ylab="True positive rate")
-
-# specificity and sensitivity for a given threshold
-coords(roc.out, 0.2)
-
-# threshold that maximises the sum of sensitivity and specificity
-coords(roc.out, "best")
-
+```{r}
+t.test(Construction[c(Party20=='Republican')],Construction[c(Party20=='Democrat')])
 ```
