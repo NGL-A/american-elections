@@ -137,6 +137,7 @@ summary(df)
 ```
 &ensp;&ensp;    
 
+
 ## Data visualization
 
 In this section we are going to see how our features are distributed among the population.
@@ -144,23 +145,17 @@ We start with three pie charts that represent three of the categories considered
 
 ```{r}
 attach(data)
-
 #population by ethnicity
-
 df.pop <- data.frame(
   group = c("White", "Hispanic", "Black", "Asian", "Native", "Pacific"),
   value = c(sum(data$TotalPop*White), sum(data$TotalPop*Hispanic), sum(data$TotalPop*Black), sum(data$TotalPop*Asian), sum(data$TotalPop*Native), sum(data$TotalPop*Pacific)))
-
 #from percentages to quantities
-
 df.pop[2]<-round(100*df.pop[2]/sum(df.pop[2]),digits = 2)
 df.pop2 <- df.pop %>% 
   mutate(csum = rev(cumsum(rev(value))), 
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
-
 #population ethnicity pie
-
 ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
@@ -177,21 +172,16 @@ As expected the dominant ethnicity is the White one that represent 63% of the to
 
 ```{r}
 #employment sector
-
 df.wk <- data.frame(
   group = c("Professional", "Service", "Office", "Construction", "Production"),
   value = c(sum(TotalPop*Professional), sum(TotalPop*Service), sum(TotalPop*Office), sum(TotalPop*Construction), sum(TotalPop*Production)))
-
 #from percentages to quantities
-
 df.wk[2]<-round(100*df.wk[2]/sum(df.wk[2]),digits = 2)
 df.wk2 <- df.wk %>% 
   mutate(csum = rev(cumsum(rev(value))), 
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
-
 #employment sector pie
-
 ggplot(df.wk, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
@@ -209,23 +199,18 @@ Later we will see if a certain class of workers prefers a specific party.
 
 ```{r}
 #transport division
-
 df.tr <- data.frame(
   group = c("Drive", "Carpool", "Transit", "Walk", "OtherTransport"),
   value = c(sum(data$TotalPop*Drive), sum(data$TotalPop*Carpool),
             sum(data$TotalPop*Transit), sum(data$TotalPop*Walk)
             , sum(data$TotalPop*OtherTransp)))
-
 #from percentages to quantities
-
 df.tr[2]<-round(100*df.tr[2]/sum(df.tr[2]),digits = 2)
 df.tr2 <- df.tr %>% 
   mutate(csum = rev(cumsum(rev(value))), 
          pos = value/2 + lead(csum, 1),
          pos = if_else(is.na(pos), value/2, pos))
-
 #transport division pie
-
 ggplot(df.tr, aes(x = "" , y = value, fill = fct_inorder(group))) +
   geom_col(width = 1, color = 1) +
   coord_polar(theta = "y") +
@@ -245,7 +230,6 @@ Now we analyse the characteristics of the counties: population and winning party
 
 ```{r}
 # distribution of the population along the counties
-
 par(mfrow=c(1, 1))
 hist(log10(TotalPop), col='deepskyblue4',breaks = 40, main = 'LogPopulation - distribution Frequency')
 ```
@@ -255,9 +239,7 @@ This histogram represents the size of the counties. We can see that most of the 
 
 ```{r}
 #winning party for county in 2020
-
 table(Party20)
-
 ```
 
 
@@ -265,9 +247,7 @@ We know that the election were won by the Democratic party in 2020, but, as we j
 
 ```{r}
 # distribution of the population along the counties per winning party
-
 boxplot(log(TotalPop)[Party20=='Democrat'], log(TotalPop)[Party20=='Republican'], col=c('blue', 'red'), names=c("Democrats", "Republicans"), ylab = 'Log(TotalPop)')
-
 ```
 &ensp;&ensp;
 
@@ -280,7 +260,6 @@ We start with the map representing the 2020 elections results and then the other
 
 
 ```{r, results='hide', warning=FALSE, message= FALSE}
-
 options(repr.plot.width = 17, repr.plot.height = 9)
 prov.usa <- map_data("state")
 prov.abb <- data.frame(state = state.name, Abb = state.abb)
@@ -330,28 +309,21 @@ prov.data3<-left_join(prov.data2,prov.abb2)
 colnames(prov.data3)[1]<-"Abb"
 colnames(prov.data3)[9]<-"region"
 prov.usa_data <- left_join(prov.usa, prov.data3) 
-
 map.pop<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$TotalPop)+
   geom_polygon(aes(group = group, fill = TotalPop),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"TotalPop", low="White", high = "deepskyblue4")
-
 map.black<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Black)+
   geom_polygon(aes(group = group, fill = Black),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Black", low="White", high = "Black")
-
 map.hisp<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Hispanic)+
   geom_polygon(aes(group = group, fill = Hispanic),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Hispanic", low="White", high = "coral3")
-
 map.asian<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Asian)+
   geom_polygon(aes(group = group, fill = Asian),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Asian", low="White", high = "darkgoldenrod")
-
 map.unemp<-ggplot(data = prov.usa_data, aes(x = long, y = lat),color = prov.usa_data$Unemployment)+
   geom_polygon(aes(group = group, fill = Unemployment),color = "gray90", size = 0.1) +
   coord_map(projection = "albers", lat0 = 39, lat1 = 45) +scale_fill_gradient(names<-"Unemployment", low="White", high = "brown")
-
-
 map.us.20
 map.pop
 map.black
@@ -386,21 +358,13 @@ All the scatterplots indicate a similar relation between ethnicity, population a
 Now to verify if our assumptions are right we perform a t-test to see if democratic counties and republican counties behaves the same.
 ```{r}
 # Population
-
 t.test(TotalPop[c(Party20=='Republican')],TotalPop[c(Party20=='Democrat')])
-
 # Black 
-
 t.test(Black[c(Party20=='Republican')],Black[c(Party20=='Democrat')])
-
 # Hispanic
-
 t.test(Hispanic[c(Party20=='Republican')],Hispanic[c(Party20=='Democrat')])
-
 # Asian
-
 t.test(Asian[c(Party20=='Republican')],Asian[c(Party20=='Democrat')])
-
 ```
 We can see that all p-values are very small so we have strong evidence against the hypothesis that the two factions behaves the same.
 
@@ -408,15 +372,12 @@ This analysis suggest that where the black community is more present the Democra
 
 ```{r}
 #Counties
-
 data %>% 
   group_by(state) %>% 
   mutate(fips = fips(state = first(state), county = county)) -> FIPS.data
-
 plot_usmap(data = FIPS.data, values = "Party20", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
   scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
   theme(legend.position = "right")
-
 plot_usmap(data = FIPS.data, values = "Black", include = c("AL", "AR", "GA", "LA", "MS", "NC", "SC", "TN")) + 
   scale_fill_continuous(low = "white", high = "black", name = "Black (2017)", label = scales::comma) + 
   theme(legend.position = "right")
@@ -427,7 +388,6 @@ From these two maps is easy to see that our initial intuition was right: the cou
 Now we are going to analyze another extreme case: the state of New York, were there are a small number of extremely populated areas (mainly the city of New York) and a lot of counties that count very few citizens.
 
 ```{r}
-
 plot_usmap(data = FIPS.data, values = "Party20", include = "NY") + 
   scale_fill_manual(values = (c("blue2", "red3")), name = "Winners (2020)") + 
   theme(legend.position = "right")
@@ -435,7 +395,6 @@ table(Party20[state=='NY'])
 plot_usmap(data = FIPS.data, values = "TotalPop", include = "NY") + 
   scale_fill_continuous(low = "white", high = "deepskyblue4", name = "Population (2017)", label = scales::comma) + 
   theme(legend.position = "right")
-
 ```
 &ensp;&ensp;
 
@@ -443,7 +402,31 @@ In the state of New York the Democratic party won with a big lead of votes, but 
 
 
 
--------------------------------REGRESSIONS--------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Regression Analysis
 
@@ -452,69 +435,105 @@ The aim is to create a model which is able to predict the outcome of the 2020 US
 
 ## Logistic Regression
 
-Let us introduce this Regression analysis by studying the "Logisitc Regression" and the information it gives us about our problem. The code below estimates a logistic regression model using the glm (generalized linear model) function. The output returns the beta coefficient for each variable, along with its standard error, z value and p value. The '*' symbols are an indication of importance for each variable. We are later going to expand this concept with the "Best Subset method", studying the variables importance relatively to the number of parameters we wish to have in our model.
+Let us introduce this Regression analisys by studying the "Logisitc Regression" and the information it gives us about our problem. The code below estimates a logistic regression model using the glm (generalized linear model) function. The output returns the beta coefficient for each variable, along with its standard error, z value and p value. The '*' symbols are an indication of importance for each variable. We are later going to expand this concept with the "Best Subset method", studying the variables importance relatively to the number of parameters we wish to have in our model.
 
-
-```{r, warning=FALSE}
-mod.out <- glm(Party20 ~. , data=df, family = binomial)
-logistic.prob <- predict(mod.out, type="response")
-logistic.pred <- rep("Democrat", 3046)
-logistic.pred[logistic.prob>0.5] <- "Republican"
-summary(mod.out)
-```
-&ensp;&ensp;
-
-From this tables we see the Confusion Matrix with a threshold of 0.5, the Confusion Matrix with a threshold of 0.2, the Trivial Classifier's output, the Confusion Matrix with rows and columns sums.
+&ensp;&ensp; 
 
 ```{r}
+# logistic classifier
+
+mod.out <- glm(Party20 ~. , data=data[-c(1:13,19:20,27,29,31,33,46,52,53)], family = binomial)
+logistic.prob <- predict(mod.out, type="response")
+
+logistic.pred <- rep("Democrat", 3046)
+logistic.pred[logistic.prob>0.5] <- "Republican"
+
+summary(mod.out)
+
 beta <- coefficients(mod.out)
 
+
+```
+&ensp;&ensp; 
+
+From this tables we see the Confusion Matrix with a threshold of 0.5, the Confusion Matrix with a threshold of 0.2 and the Trivial Classifier's output. Let us analyze the false positive, the true negative and the true positive rates. We will further investigate with a Roc Curve study.
+
+The 0.5 threshold is a standard choice and works quite well with a 0.7425532 specificity and a 0.9751553 sensitivity value.
+
+&ensp;&ensp; 
+
+```{r}
 # confusion matrix threshold=0.5
 table(logistic.pred, Party20)
 
+CM <- table(logistic.pred, Party20)
+CM <- CM[2:1, 2:1]
+CM <- addmargins(CM, margin = c(1, 2))
+CM
+
+# false positive rate = FP/N
+fpr <- CM["Republican", "Democrat"]/CM["Sum", "Democrat"]   
+fpr 
+
+# true negative rate = TN/N Specificity
+specif <- 1 - fpr
+specif
+
+# true positive rate = TP/P Sensitivity
+tpr <- CM["Republican", "Republican"]/CM["Sum", "Republican"] 
+tpr 
+
+```
+
+
+&ensp;&ensp; 
+
+On the other hand, the 0.2 threshold has a much lower specificity (set at 0.5702128) which is an index of great missclassification for the true negative rate.
+
+&ensp;&ensp; 
+
+
+```{r}
 # confusion matrix threshold=0.2
 logistic.pred <- rep("Democrat", 3046)
 logistic.pred[logistic.prob>0.2] <- "Republican"
 table(logistic.pred, Party20)
 
+CM <- table(logistic.pred, Party20)
+CM <- CM[2:1, 2:1]
+CM <- addmargins(CM, margin = c(1, 2))
+CM
+
 # trivial classifier 
 trivial.pred <- rep("Democrat", 3046)
 table(trivial.pred, Party20)
 
-CM <- table(logistic.pred, Party20)
-
-# Confusion Matrix with rows and columns sums
-CM <- CM[2:1, 2:1]
-CM <- addmargins(CM, margin = c(1, 2))
-CM
-```
-&ensp;&ensp; 
-
-Let us analyze the false positive, the true negative and the true positive rates. We will further investigate with a Roc Curve study.
-
-```{r}
 # false positive rate = FP/N
 fpr <- CM["Republican", "Democrat"]/CM["Sum", "Democrat"]   
 fpr 
 
-# true negative rate = TN/N
+# true negative rate = TN/N Specificity
 specif <- 1 - fpr
 specif
 
-# true positive rate = TP/P
+# true positive rate = TP/P Sensitivity
 tpr <- CM["Republican", "Republican"]/CM["Sum", "Republican"] 
 tpr 
+
+
+```
+
+&ensp;&ensp; 
+
+The Roc curve is a graphical representation of what happens in the previous table. The AUC (Area Under Curve) always has good values (close to 1) and is correctly shaped, meaning our predictions are fairly accurate. We also find the best threshold value to be at 0.8739469.
+
+&ensp;&ensp; 
+
+```{r}
 
 # Roc curve 
 roc.out <- roc(Party20, logistic.prob, levels=c("Democrat", "Republican"))
 
-```
-
-
-The Roc curve is a graphical representation of what happens in the previous table. The AUC (Area Under Curve) always has good values (close to 1) and is correctly shaped, meaning our predictions are fairly accurate.
-
-
-```{r}
 plot(roc.out,  print.auc=TRUE, legacy.axes=TRUE, xlab="False positive rate", ylab="True positive rate")
 
 # specificity and sensitivity for threshold of 0.5
@@ -525,128 +544,220 @@ coords(roc.out, 0.2)
 
 # threshold that maximises the sum of sensitivity and specificity
 coords(roc.out, "best")
+
+# confusion matrix threshold=0.8739469
+logistic.pred <- rep("Democrat", 3046)
+logistic.pred[logistic.prob>0.8739469] <- "Republican"
+table(logistic.pred, Party20)
+
+CM <- table(logistic.pred, Party20)
+CM <- CM[2:1, 2:1]
+CM <- addmargins(CM, margin = c(1, 2))
+CM
+
+# trivial classifier 
+trivial.pred <- rep("Democrat", 3046)
+table(trivial.pred, Party20)
+
+# false positive rate = FP/N
+fpr <- CM["Republican", "Democrat"]/CM["Sum", "Democrat"]   
+fpr 
+
+# true negative rate = TN/N Specificity
+specif <- 1 - fpr
+specif
+
+# true positive rate = TP/P Sensitivity
+tpr <- CM["Republican", "Republican"]/CM["Sum", "Republican"] 
+tpr 
+
+
 ```
 
-### Best Subset method
+
+
+## Best Subset method
 
 Let us analyze the Best Subset method in order to compare the overall performance of the models Adjusted R2, Cp and BIC via a variable selection. The R function regsubsets() can be used to identify different best models of different sizes. We will be using a maximum of 31 variables for each model. A variable is included in a model if it is marked with the symbol '*'.
+
 
 ```{r}
 #Best Subset Method
 best_sub_df <-c(percentage20_Joe_Biden>percentage20_Donald_Trump)
-regfit.full <- regsubsets(best_sub_df~., data=df, really.big = T,nvmax = 31)
+regfit.full <- regsubsets(best_sub_df~., data=data[-c(1:13,19:20,27,29,31,33,46,52,53)], really.big = T,nvmax = 31)
 reg.summary <- summary(regfit.full)
 reg.summary$outmat
 ```
 
-Another way to visualize this matrix is by using the following plots. If the space is filled by a blue square, the variable is included in the model using "x" parameters. We analyze the RSS, Adjusted R2, Cp and BIC models.
+Another way to visualize this matrix is by using the following plots. If the space is filled by a blue square, the variable is included in the model using "x" parameters. We analize the RSS, Adjusted R2, Cp and BIC models.
 
+```{r}
+plot(regfit.full,scale="r2", col="#006699")
+plot(regfit.full,scale="adjr2", col="#006699")
+plot(regfit.full,scale="Cp", col="#006699")
+plot(regfit.full,scale="bic", col="#006699")
 
+data.frame(
+  Adj.R2 = which.max(reg.summary$adjr2),
+  CP = which.min(reg.summary$cp),
+  BIC = which.min(reg.summary$bic))
 
+```
 
+&ensp;&ensp; 
 
+Here, adjusted R2 tells us that the best model is the one with 29 predictor variables. However, using the BIC and Cp criteria, we should go for the model with 17 and 21 variables respectively.
 
+Let us plot our results to visualize the min and max point we are looking for.
 
+&ensp;&ensp;
 
-```{r,  warning=FALSE}
-#regression_here
-#correggere "v"
-v<-c(percentage20_Joe_Biden>percentage20_Donald_Trump)
-regfit.full <- regsubsets(v~., data=df, really.big = T,nvmax = 34)
-reg.summary <- summary(regfit.full)
-reg.summary$outmat
+```{r}
+## RSS (residual sum of squares)
 par(mfrow=c(2,2))
 plot(reg.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
+
+# Adjr2 with its smallest value
 plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
 which.max(reg.summary$adjr2)
 points(which.max(reg.summary$adjr2),reg.summary$adjr2[which.max(reg.summary$adjr2)], col="red",cex=2,pch=20)
+
 # Mallow's Cp with its smallest value
 plot(reg.summary$cp,xlab="Number of Variables",ylab="Cp",type='l')
 which.min(reg.summary$cp)
 points(which.min(reg.summary$cp),reg.summary$cp[which.min(reg.summary$cp)],col="red",cex=2,pch=20)
+
 # BIC with its smallest value
 plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
 which.min(reg.summary$bic)
 points(which.min(reg.summary$bic),reg.summary$bic[which.min(reg.summary$bic)],col="red",cex=2,pch=20)
 par(mfrow=c(1,1))
-plot(regfit.full,scale="r2", col="#006699")
-plot(regfit.full,scale="adjr2", col="#006699")
-plot(regfit.full,scale="Cp", col="#006699")
-plot(regfit.full,scale="bic", col="#006699")
+
 ```
+
+
 &ensp;&ensp; 
 
-```{r,  warning=FALSE}
+## Regularization
+
+&ensp;&ensp; 
+
+This paragraph explains two more types of regressions, which use a regularization technique in order to avoid overfitting. It does so by imposing a penalty on the unimportant variables, which brings their coefficients towards zero. We will also be analyzing this "penalty" factor lambda, which can be optimally found with simple cross validation. 
+
+&ensp;&ensp;
+
+## Lasso Regression
+
+&ensp;&ensp; 
+
+Lasso Regression (also called L1 regression) adds the “absolute value of magnitude” of the coefficient as a penalty term to the loss function. This can lead to bringing some of the coefficients to be exactly zero, i.e. some of the features are totally neglected for the evaluation of output (when the tuning parameter λ is large enough). Let us start by choosing a grid of random values of λ, we will later investigate its optimality.
+
+```{r}
 #lasso regression code
-X <- model.matrix(percentage20_Joe_Biden~.,df)
+X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
 y<-percentage20_Joe_Biden
 grid.lasso<-10^seq(-0.5,-6,length=100)
 lasso.mod<-glmnet(X,y,alpha = 1,lambda = grid.lasso)
 plot(lasso.mod, xvar="lambda")
+
+
+
 train <- sample(1:nrow(X),nrow(X)/2)
 test<-(-train)
 y.test<-y[test]
 lasso.pred<-predict(lasso.mod,s=4,newx = X[test,],type = "response")
 mean((lasso.pred-y.test)^2)
-predict(lasso.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
+
+```
+
+&ensp;&ensp; 
+
+Let us use the cross-validation method to choose the optimal value of lambda.
+
+&ensp;&ensp; 
+
+```{r}
 # use cross-validation to choose the value of lambda 
+
 cv.out.lasso <- cv.glmnet(X[train, ], y[train], alpha = 1,lambda = grid.lasso, nfold=10)
+
 cv.out.lasso$lambda
 summary(cv.out.lasso$lambda)
+
 plot(cv.out.lasso)
 i.bestlam.lasso <- which.min(cv.out.lasso$cvm)
 i.bestlam.lasso
 bestlam.lasso <- cv.out.lasso$lambda[i.bestlam.lasso]
 bestlam.lasso
+
 cv.out.lasso$cvm[i.bestlam.lasso]
+
 lasso.pred <- predict(lasso.mod, s = bestlam.lasso,
                       newx = X[test, ])
-lasso.MSE <- mean((lasso.pred - y.test)^2)
-par(mfrow=c(1,1))
-
-lasso.MSE
+mean((lasso.pred - y.test)^2)
 ```
+
+&ensp;&ensp; 
+
+## Ridge Regression
+
+The Ridge Regression (also called L2 regression) adds the “squared value of magnitude” of the coefficient as a penalty term to the loss function. Let us start by choosing a grid of random values of λ, we will later investigate its optimality.
+
+&ensp;&ensp; 
 
 ```{r}
 #ridge regression
-par(mfrow=c(1,2))
-X <- model.matrix(percentage20_Joe_Biden~.,df)
+
+X <- model.matrix(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)])
 y<-percentage20_Joe_Biden
 grid.ridge<-10^seq(2,-4,length=100)
 ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
 plot(ridge.mod, xvar="lambda")
+
+
+
 train <- sample(1:nrow(X),nrow(X)/2)
 test<-(-train)
 y.test<-y[test]
 ridge.pred<-predict(ridge.mod,s=4,newx = X[test,],type = "response")
 mean((ridge.pred-y.test)^2)
-#lm(percentage20_Joe_Biden~.,data[-c(1:13,19:20,27,29,31,33,52,53)],subset = train)
+
 predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
+
+```
+
+&ensp;&ensp; 
+
+Let us use the cross-validation method to choose the optimal value of lambda.
+
+&ensp;&ensp; 
+```{r}
+
 # use cross-validation to choose the value of lambda 
+
 cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0,lambda = grid.ridge, nfold=10)
+
 cv.out$cvm
 summary(cv.out$lambda)
+
 plot(cv.out)
 i.bestlam <- which.min(cv.out$cvm)
 i.bestlam 
 bestlam <- cv.out$lambda[i.bestlam]
 bestlam
 cv.out$cvm[i.bestlam]
+
+
 ridge.pred <- predict(ridge.mod, s = bestlam,
                       newx = X[test, ])
-ridge.MSE <- mean((ridge.pred - y.test)^2)
-ridge.MSE
-
+mean((ridge.pred - y.test)^2)
 ```
+
 &ensp;&ensp; 
 
+### Conclusion
 
-
-
-
---------------------CONCLUSIONS-------------------------
-#Abbiamo visto i vari modelli. Il best subset ci ha indicicato quello che con vari metodi di valutazione (+ dire che metodo dice cosa) che il modello bigliore varia tra quello con 20/30 features
-
-```{r}
-t.test(Construction[c(Party20=='Republican')],Construction[c(Party20=='Democrat')])
-```
+The USA are a very heterogeneous nation with many differences not only state by state but also internally, from county to county.
+The population is not uniformly distributed and the density of population, ethnical composition and type of employment tend to have an impact on the election results.
+We took New York as an example to show how the urban parts of the state are more inclusive and tend to have more progressive ideas voting the democrat party. The peripheral areas instead, and to have more traditional views and prefer the republican party. 
+We also considered how the ethnical differences may impact in the election results, taking the southern states as an example. We noticed that the areas with a higher percentage of black ethnicity are more likely to avoid voting the Republicans, and tend to prefer the Democrat Party.
