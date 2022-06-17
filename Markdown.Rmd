@@ -4,7 +4,7 @@ author: "A. Bissacco, F. Sartori, M. Sboarina"
 date: "21/06/2022"
 output:
   #word_document: default
-  html_document
+  #html_document: default
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -17,6 +17,7 @@ library(leaps)
 library(mapproj)
 library(maps)
 library(pROC)
+library(ROCR)
 library(tidyverse)
 library(usmap)
 ```
@@ -25,10 +26,10 @@ library(usmap)
 
 Every 4 year one of the most relevant political events in the world takes place: the election of the US President. After months, even years, of preparations (campaigns, public speeches, sponsors...) the eyes of the entire world are looking to the results of those elections, to the one who will be leading the "free world" in the near future.
 
-Our project wants to focus on what might affect citizens vote: if the geographical area is relevant, if the type of work can change the preference, if one ethnicity is more likely to vote a Party over the other and if there is any strong correlation between the variables.  
+Our project wants to focus on what might affect citizens vote: if the geographical area is relevant, if the type of work can change the preference, if one ethnicity is more likely to vote a Party over the other and if there is any strong correlation between these variables.  
 We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until 1st November 2020 (few days before the elections).
 
-#Come funzionano le elezioni
+The USA are the only country in the world applying an Electoral College system to pick their President. This mechanism gives a weight to each state according to its population: the more populated the more significance it will have while voting. When a party win a state it will get **every** Electoral College regardless the victory margin. Even though every 10 years the Government updates these weights, many states (typically smaller ones) have much more representation per citizen than others. For this reason candidate campaigns focus on these states and on gaining the support of the ones which are not historically biased on a specific party (*swing states*).
 
 We start our analysis by removing NA values. We delete 1821 rows that are mostly counties which don't present all of the features. Counties that changed name have been classified both with the original name and the new name, but the latter contains only COVID and 2020 election data. This lead us to 3046 counties which is close to their real number of 3142^[Alaska only had the data for 2020 elections so all its boroughs had been removed.].
 
@@ -50,49 +51,62 @@ data[,c(21:26,32:45,47:51)] <- (data[,c(21:26,32:45,47:51)]/100)
 
 Our dataset contains the following 51 variables:
 
-&ensp;&ensp;1. County: county name  
-&ensp;&ensp;2. State: Two-Letter State Abbreviation  
-&ensp;&ensp;3. percentage16_Donald_Trump: percentage of votes Donald Trump got in 2016  
-&ensp;&ensp;4. percentage16_Hillary_Clinton: percentage of votes Hilary Clinton got in 2016  
-&ensp;&ensp;5. total_votes16: total number of votes in 2016  
-&ensp;&ensp;6. percentage20_Donald_Trump: percentage of votes Donald Trump got in 2020  
-&ensp;&ensp;7. percentage20_Joe_Biden: percentage of votes Joe Biden got in 2020  
-&ensp;&ensp;8. total_votes20: total number of votes in 2020  
-&ensp;&ensp;9. lat: latitude coordinates  
-&ensp;&ensp;10. long: longitude coordinates  
-&ensp;&ensp;11. cases: COVID-19 cases  
-&ensp;&ensp;12. deaths: COVID-19 deaths  
-&ensp;&ensp;13. TotalPop: Total population  
-&ensp;&ensp;14. Hispanic: percent of population that is Hispanic/Latino  
-&ensp;&ensp;15. White: percent of population that is white  
-&ensp;&ensp;16. Black: percent of population that is black  
-&ensp;&ensp;17. Native: percent of population that is Native American or Native Alaskan  
-&ensp;&ensp;18. Asian: percent of population that is Asian  
-&ensp;&ensp;19. Pacific: percent of population that is Native Hawaiian or Pacific Islander  
-&ensp;&ensp;20. Income: median household income  
-&ensp;&ensp;21. IncomePerCap: income per capita  
-&ensp;&ensp;22. Poverty: percent of population under poverty level  
-&ensp;&ensp;23. Professional: percent of population employed in management, business, science and arts  
-&ensp;&ensp;24. Service: percent of population employed in service jobs  
-&ensp;&ensp;25. Office: percent of population employed in sales and office jobs  
-&ensp;&ensp;26. Construction: percent of population employed in natural resources, construction and maintenance  
-&ensp;&ensp;27. Production: percent of population employed in production, transportation and material movement  
-&ensp;&ensp;28. Drive: percent commuting alone in a car, van, or truck  
-&ensp;&ensp;29. Carpool: percent carpooling in a car, van, or truck  
-&ensp;&ensp;30. Transit: percent commuting on public transportation  
-&ensp;&ensp;31. Walk: percent walking to work OtherTransp percent commuting via other means  
-&ensp;&ensp;32. WorkAtHome: percent working at home  
-&ensp;&ensp;33. MeanCommute: Mean commute time (minutes)
-&ensp;&ensp;34. PublicWork: percent of population employed in public jobs  
-&ensp;&ensp;35. SelfEmployed: percent of population self-employed  
-&ensp;&ensp;36. FamilyWork: percent of population in unpaid family work  
-&ensp;&ensp;37. Unemployment: unemployment rate (percent)  
+&ensp;&ensp;1. X: county index (from 1 to 4954)  
+&ensp;&ensp;2. County: county name  
+&ensp;&ensp;3. State: Two-Letter State Abbreviation  
+&ensp;&ensp;4. percentage16_Donald_Trump: percentage of votes Donald Trump got in 2016  
+&ensp;&ensp;5. percentage16_Hillary_Clinton: percentage of votes Hilary Clinton got in 2016  
+&ensp;&ensp;6. total_votes16: total number of votes in 2016  
+&ensp;&ensp;7. votes16_Donald_Trump: number of votes Donald Trump got in 2016  
+&ensp;&ensp;8. votes16_Hillary_Clinton: number of votes Hilary Clinton got in 2016  
+&ensp;&ensp;9. percentage20_Donald_Trump: percentage of votes Donald Trump got in 2020  
+&ensp;&ensp;10. percentage20_Joe_Biden: percentage of votes Joe Biden got in 2020  
+&ensp;&ensp;11. total_votes20: total number of votes in 2020  
+&ensp;&ensp;12. votes20_Donald_Trump: number of votes Donald Trump got in 2020  
+&ensp;&ensp;13. votes20_Joe_Biden: number of votes Joe Biden got in 2020  
+&ensp;&ensp;14. lat: latitude coordinates  
+&ensp;&ensp;15. long: longitude coordinates  
+&ensp;&ensp;16. cases: COVID-19 cases  
+&ensp;&ensp;17. deaths: COVID-19 deaths  
+&ensp;&ensp;18. TotalPop: Total population  
+&ensp;&ensp;19. Men: number of men  
+&ensp;&ensp;20. Women: number of women  
+&ensp;&ensp;21. Hispanic: percent of population that is Hispanic/Latino  
+&ensp;&ensp;22. White: percent of population that is white  
+&ensp;&ensp;23. Black: percent of population that is black  
+&ensp;&ensp;24. Native: percent of population that is Native American or Native Alaskan  
+&ensp;&ensp;25. Asian: percent of population that is Asian  
+&ensp;&ensp;26. Pacific: percent of population that is Native Hawaiian or Pacific Islander  
+&ensp;&ensp;27. VotingAgeCitizen: number of citizens above voting age  
+&ensp;&ensp;28. Income: median household income  
+&ensp;&ensp;29. IncomeErr: median household income error  
+&ensp;&ensp;30. IncomePerCap: income per capita  
+&ensp;&ensp;31. IncomePerCapErr: income per capita error  
+&ensp;&ensp;32. Poverty: percent of population under poverty level  
+&ensp;&ensp;33. ChildPoverty percent of children under poverty level  
+&ensp;&ensp;34. Professional: percent of population employed in management, business, science and arts  
+&ensp;&ensp;35. Service: percent of population employed in service jobs  
+&ensp;&ensp;36. Office: percent of population employed in sales and office jobs  
+&ensp;&ensp;37. Construction: percent of population employed in natural resources, construction and maintenance  
+&ensp;&ensp;38. Production: percent of population employed in production, transportation and material movement  
+&ensp;&ensp;39. Drive: percent commuting alone in a car, van, or truck  
+&ensp;&ensp;40. Carpool: percent carpooling in a car, van, or truck  
+&ensp;&ensp;41. Transit: percent commuting on public transportation  
+&ensp;&ensp;42. Walk: percent walking to work OtherTransp percent commuting via other means  
+&ensp;&ensp;43. OtherTransp: percent using other type of transportation  
+&ensp;&ensp;44. WorkAtHome: percent of population working at home  
+&ensp;&ensp;45. MeanCommute: mean commute time (minutes)  
+&ensp;&ensp;46. Employed: percent of population employed (16+)  
+&ensp;&ensp;47. PrivateWork: percent of population employed in private industry  
+&ensp;&ensp;48. PublicWork: percent of population employed in public jobs  
+&ensp;&ensp;49. SelfEmployed: percent of population self-employed  
+&ensp;&ensp;50. FamilyWork: percent of population in unpaid family work  
+&ensp;&ensp;51. Unemployment: unemployment rate (percent)  
+&ensp;&ensp;  
 
+We want to see between which variables exists a deep correlation through a correlation matrix^[We changed columns "percentageXX_Candidate" into "pCandidateXX" and "votesXX_Candidate" into "CandidateXX" to obtain a clearer plot.].
 
-
-We want to see between which variables exist a deep correlation through a correlation matrix^[We changed columns "percentageXX_Candidate" into "pCandidateXX" and "votesXX_Candidate" into "CandidateXX" to obtain a clearer plot.].
-
-```{r, results='hide', warning=FALSE, message= FALSE}
+```{r, results='hide'}
 data.corr <- data
 names(data.corr)[names(data.corr) == "percentage16_Donald_Trump"] <- "pTrump16"
 names(data.corr)[names(data.corr) == "percentage16_Hillary_Clinton"] <- "pClinton16"
@@ -107,10 +121,52 @@ corrplot(cor, type = 'upper', tl.cex = 0.5)
 
 ```
 
-We can see that "men, women blablabla" are deeply correlated because they are absolute frequencies values and they basically are linear transformation of the number of citizens (TotalPop). For example men and women are around 50-50 of the population.
-We discovered that the gender doesn't affect any of the variables and that "ChildPoverty" behave like "Poverty", so we kept only the latter; while we chose "TotalPop" to represent "Men" and "Women", but also "Emplyed" and "VotingAgeCitizen". "IncomeErr" and "IncomePerCapErr" were grouped respectively with their counterpart "Income" and "IncomePerCap". "votesXX_Candidate" had been considered together with "percentageXX_Candidate".  
-So we decided to maintain these:
 
+We discover that many variables are deeply correlated because they are absolute frequency values and basically a linear transformation of another column. 
+In fact the matrix proves us that, since females and males are equally distributed in almost every county, one gender doesn't affect any of the variables more than the other. Moreover we acknowledge that "ChildPoverty" behave like "Poverty", so we keep only the latter; while we chose "TotalPop" to represent "Men" and "Women", but also "Emplyed" and "VotingAgeCitizen". "IncomeErr" and "IncomePerCapErr" are grouped respectively with their counterpart "Income" and "IncomePerCap". "votesXX_Candidate" have been considered together with "percentageXX_Candidate".  
+When managing absolute frequencies we need to remember that they are all correlated to the whole population. In order to obtain clearer comparison between the counties statistics we decided upon working though relative values over absolute.
+
+So we decided to maintain these:
+&ensp;&ensp;1. County  
+&ensp;&ensp;2. State  
+&ensp;&ensp;3. percentage16_Donald_Trump   
+&ensp;&ensp;4. percentage16_Hillary_Clinton  
+&ensp;&ensp;5. total_votes16   
+&ensp;&ensp;6. percentage20_Donald_Trump  
+&ensp;&ensp;7. percentage20_Joe_Biden   
+&ensp;&ensp;8. total_votes20  
+&ensp;&ensp;9. lat  
+&ensp;&ensp;10. long  
+&ensp;&ensp;11. cases  
+&ensp;&ensp;12. deaths  
+&ensp;&ensp;13. TotalPop  
+&ensp;&ensp;14. Hispanic  
+&ensp;&ensp;15. White  
+&ensp;&ensp;16. Black  
+&ensp;&ensp;17. Native   
+&ensp;&ensp;18. Asian  
+&ensp;&ensp;19. Pacific  
+&ensp;&ensp;20. Income  
+&ensp;&ensp;21. IncomePerCap  
+&ensp;&ensp;22. Poverty  
+&ensp;&ensp;23. Professional  
+&ensp;&ensp;24. Service  
+&ensp;&ensp;25. Office  
+&ensp;&ensp;26. Construction  
+&ensp;&ensp;27. Production  
+&ensp;&ensp;28. Drive  
+&ensp;&ensp;29. Carpool  
+&ensp;&ensp;30. Transit  
+&ensp;&ensp;31. Walk  
+&ensp;&ensp;32. OtherTransp  
+&ensp;&ensp;33. WorkAtHome  
+&ensp;&ensp;34. MeanCommute  
+&ensp;&ensp;35. PrivateWork  
+&ensp;&ensp;36. PublicWork  
+&ensp;&ensp;37. SelfEmployed  
+&ensp;&ensp;38. FamilyWork  
+&ensp;&ensp;39. Unemployment    
+&ensp;&ensp;
 
 
 
@@ -132,11 +188,10 @@ data$county[data$state == "LA"] = paste(data$county[data$state == "LA"], "Parish
 
 
 ```{r, results='hide'}
-df <- data[-c(1,7:8,12:13,19:20,27,29,31,33,46)]
+df <- data[-c(1:13,19:20,27,29,31,33,46,52:53)] #for the regressions
 summary(df)
 ```
-&ensp;&ensp;    
-
+&ensp;&ensp;  
 
 ## Data visualization
 
