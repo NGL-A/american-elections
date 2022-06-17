@@ -22,15 +22,15 @@ library(tidyverse)
 library(usmap)
 ```
 
-## Elections, COVID and Demographic Data
-
+## US Election
 Once every 4 years one of the most relevant political events in the world takes place: the election of the US President. After months, even years, of preparations (campaigns, public speeches, sponsors...) the eyes of the entire world are looking to the results of those elections, to the one who will be leading the "free world" in the near future.
 
 Our project wants to focus on what might affect citizens vote: if the geographical area is relevant, if the type of work can change the preference, if one ethnicity is more likely to vote a Party over the other and if there is any strong correlation between these variables.  
 We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until 1st November 2020 (few days before the elections).
 
-The USA are the only country in the world applying an Electoral College system to pick their President. This mechanism gives a weight to each state according to its population: the more populated the more significance it will have while voting. When a party win a state it will get **every** Electoral College regardless the victory margin. Even though every 10 years the Government updates these weights, many states (typically smaller ones) have much more representation per citizen than others. For this reason candidate campaigns focus on these states and on gaining the support of the ones which are not historically biased on a specific party (*swing states*).
+The USA are the only country in the world applying an Electoral College system to pick their President. This mechanism gives a weight to each state according to its population: the more populated the more significance it will have while voting. When a party wins a state it will get **every** Electoral College regardless the victory margin. Even though every 10 years the Government updates these weights, many states (typically smaller ones) have much more representation per citizen than others. For this reason candidate campaigns focus on these states and on gaining the support of the ones which are not historically biased on a specific party (*swing states*).
 
+### Clean dataset
 We start our analysis by removing NA values. We delete 1821 rows that are mostly counties which don't present all of the features. Counties that changed name have been classified both with the original name and the new name, but the latter contains only COVID and 2020 election data. This lead us to 3046 counties which is close to their real number of 3142^[Alaska only had the data for 2020 elections so all its boroughs had been removed.].
 
 ```{r, results='hide'}
@@ -121,12 +121,11 @@ corrplot(cor, type = 'upper', tl.cex = 0.5)
 
 ```
 
-
 We discover that many variables are deeply correlated because they are absolute frequency values and basically a linear transformation of another column. 
 In fact the matrix proves us that, since females and males are equally distributed in almost every county, one gender doesn't affect any of the variables more than the other. Moreover we acknowledge that "ChildPoverty" behave like "Poverty", so we keep only the latter; while we chose "TotalPop" to represent "Men" and "Women", but also "Emplyed" and "VotingAgeCitizen". "IncomeErr" and "IncomePerCapErr" are grouped respectively with their counterpart "Income" and "IncomePerCap". "votesXX_Candidate" have been considered together with "percentageXX_Candidate".  
-When managing absolute frequencies we need to remember that they are all correlated to the whole population. In order to obtain clearer comparison between the counties statistics we decided upon working though relative values over absolute.
+When managing absolute frequencies we need to remember that they are all correlated to the whole population. In order to obtain clearer comparison between the counties statistics we decided upon working though relative values over absolute.  
 
-So we decided to maintain these:
+So we decided to maintain these:  
 &ensp;&ensp;1. County  
 &ensp;&ensp;2. State  
 &ensp;&ensp;3. percentage16_Donald_Trump   
@@ -165,10 +164,7 @@ So we decided to maintain these:
 &ensp;&ensp;36. PublicWork  
 &ensp;&ensp;37. SelfEmployed  
 &ensp;&ensp;38. FamilyWork  
-&ensp;&ensp;39. Unemployment    
-&ensp;&ensp;
-
-
+&ensp;&ensp;39. Unemployment  
 
 To obtain a clearer view of the election results we add two new columns with each county winner Party in 2016 and 2020.
 
@@ -176,21 +172,15 @@ To obtain a clearer view of the election results we add two new columns with eac
 data$Party16 = factor(if_else(data$percentage16_Hillary_Clinton >= data$percentage16_Donald_Trump, "Democrat", "Republican"))
 data$Party20 = factor(if_else(data$percentage20_Joe_Biden >= data$percentage20_Donald_Trump, "Democrat", "Republican"))
 ```
-&ensp;&ensp;  
 
-Later on we will analyze and plot the situation in some counties in the USA so we need to fix Louisiana's ones. The state is in fact, the only one in the country which divides its territory in parishes and our dataset is missing the suffix "Parish" in the name of each subdivision.
+Since later on we will have to analyze and plot the situation in some counties in the USA, we need to fix Louisiana's ones. The state is in fact, the only one in the country which divides its territory in parishes and our dataset is missing the suffix "Parish" in the name of each subdivision.
 
 ```{r, results='hide'}
 data$county[data$state == "LA"] = paste(data$county[data$state == "LA"], "Parish")
 ```
-&ensp;&ensp;  
 
 
 
-```{r, results='hide'}
-df <- data[-c(1:13,19:20,27,29,31,33,46,52:53)] #for the regressions
-summary(df)
-```
 &ensp;&ensp;  
 
 ## Data visualization
@@ -425,6 +415,7 @@ We can see that all p-values are very small so we have strong evidence against t
 
 This analysis suggest that where the black community is more present the Democratic party should win but the map show that the states with a higher percentage of Black ethnicity (the south-eastern states) voted Republican. Now we will look at this phenomenon at a county-level. 
 
+
 ```{r}
 #Counties
 data %>% 
@@ -455,33 +446,7 @@ plot_usmap(data = FIPS.data, values = "TotalPop", include = "NY") +
 
 In the state of New York the Democratic party won with a big lead of votes, but watching the results map it would appear that republicans won (in fact they got 49 counties out of 62). This is due to the amount of population concentrated only in few counties: urbanized areas are extremely populated so they can easily overturn the outcome in a state. For example the population in New York City alone is around 40% of the entire state and this allowed the victory of the Democratic Party even though they lost in 80% of the counties.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-------------------------------REGRESSIONS--------------------------------------
 
 ## Regression Analysis
 
@@ -490,24 +455,17 @@ The aim is to create a model which is able to predict the outcome of the 2020 US
 
 ## Logistic Regression
 
-Let us introduce this Regression analisys by studying the "Logisitc Regression" and the information it gives us about our problem. The code below estimates a logistic regression model using the glm (generalized linear model) function. The output returns the beta coefficient for each variable, along with its standard error, z value and p value. The '*' symbols are an indication of importance for each variable. We are later going to expand this concept with the "Best Subset method", studying the variables importance relatively to the number of parameters we wish to have in our model.
+Let us introduce this Regression analysis by studying the "Logisitc Regression" and the information it gives us about our problem. The code below estimates a logistic regression model using the glm (generalized linear model) function. The output returns the beta coefficient for each variable, along with its standard error, z value and p value. The '*' symbols are an indication of importance for each variable. We are later going to expand this concept with the "Best Subset method", studying the variables importance relatively to the number of parameters we wish to have in our model.
 
-&ensp;&ensp; 
 
-```{r}
-# logistic classifier
-
-mod.out <- glm(Party20 ~. , data=data[-c(1:13,19:20,27,29,31,33,46,52,53)], family = binomial)
+```{r, warning=FALSE}
+df <- data[-c(1:13,19:20,27,29,31,33,46,52:53)]
+mod.out <- glm(Party20 ~. , data=df, family = binomial)
 logistic.prob <- predict(mod.out, type="response")
-
 logistic.pred <- rep("Democrat", 3046)
 logistic.pred[logistic.prob>0.5] <- "Republican"
-
 summary(mod.out)
-
 beta <- coefficients(mod.out)
-
-
 ```
 &ensp;&ensp; 
 
