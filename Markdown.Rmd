@@ -23,12 +23,12 @@ library(usmap)
 ```
 
 ## US Election
-Once every 4 years one of the most relevant political events in the world takes place: the election of the US President. After months, even years, of preparations (campaigns, public speeches, sponsors...) the eyes of the entire world are looking to the results of those elections, to the one who will be leading the "free world" in the near future.
+Once every 4 years one of the most relevant political event in the world takes place: the election of the US President. After months, even years, of preparations (campaigns, public speeches, sponsors...) the eyes of the entire world are looking to the results of those elections, to the person who will be leading the "free world" in the near future.
 
 Our project wants to focus on what might affect citizens vote: if the geographical area is relevant, if the type of work can change the preference, if one ethnicity is more likely to vote a Party over the other and if there is any strong correlation between these variables.  
-We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until 1st November 2020 (few days before the elections).
+We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains the 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until the 1st of November 2020 (few days before the elections).
 
-The USA are the only country in the world applying an Electoral College system to pick their President. This mechanism gives a weight to each state according to its population: the more populated the more significance it will have while voting. When a party wins a state it will get **every** Electoral College regardless the victory margin. Even though every 10 years the Government updates these weights, many states (typically smaller ones) have much more representation per citizen than others. For this reason candidate campaigns focus on these states and on gaining the support of the ones which are not historically biased on a specific party (*swing states*).
+The USA are the only country in the world applying an Electoral College system to pick their President. This mechanism gives a weight to each state according to its population: the more it is populated the more significant it will be when voting. When a party wins a state it will get **every** Electoral College regardless of the victory margin. Even though every 10 years the Government updates these weights, many states (typically smaller ones) have much more representation per citizen than others. For this reason candidate campaigns focus on these states and on gaining the support of the ones which are not historically biased on a specific party (*swing states*).
 
 ### Clean dataset
 We start our analysis by removing NA values. We delete 1821 rows that are mostly counties which don't present all of the features. Counties that changed name have been classified both with the original name and the new name, but the latter contains only COVID and 2020 election data. This lead us to 3046 counties which is close to their real number of 3142^[Alaska only had the data for 2020 elections so all its boroughs had been removed.].
@@ -185,7 +185,7 @@ data$county[data$state == "LA"] = paste(data$county[data$state == "LA"], "Parish
 
 ## Data visualization
 
-In this section we are going to see how our features are distributed among the population.
+In this section see how our features are distributed among the population.
 We start with three pie charts that represent three of the categories considered in the census of 2017: the ethnicity, the employment sector and the usual method of transport.
 
 ```{r}
@@ -213,7 +213,7 @@ ggplot(df.pop, aes(x = "" , y = value, fill = fct_inorder(group))) +
 ```
 &ensp;&ensp;  
 
-As expected the dominant ethnicity is the White one that represent 63% of the total population of the United States. The other mayor ethnicities are Hispanic (18.32%), Black (12.44%) and the Asian (5.44%).
+As expected the dominant ethnicity is the White one that represent 63% of the total population of the United States. The other mayor ethnicities are Hispanic (18.32%), Black (12.44%) and Asian (5.44%).
 
 ```{r}
 #employment sector
@@ -296,7 +296,7 @@ boxplot(log(TotalPop)[Party20=='Democrat'], log(TotalPop)[Party20=='Republican']
 ```
 &ensp;&ensp;
 
-As suspected the distribution is not the same; the democratic counties in general counts more inhabitants and also the biggest counties are all democratic.
+As suspected the distribution is not the same; the democratic counties in general count more inhabitants and the biggest counties are all democratic.
 
 &ensp;&ensp;
 
@@ -413,7 +413,7 @@ t.test(Asian[c(Party20=='Republican')],Asian[c(Party20=='Democrat')])
 ```
 We can see that all p-values are very small so we have strong evidence against the hypothesis that the two factions behaves the same.
 
-This analysis suggest that where the black community is more present the Democratic party should win but the map show that the states with a higher percentage of Black ethnicity (the south-eastern states) voted Republican. Now we will look at this phenomenon at a county-level. 
+This analysis suggests that where the black community is more present the Democratic party should win but the map shows that the states with a higher percentage of Black ethnicity (the south-eastern states) voted Republican. Now we will look at this phenomenon at a county-level. 
 
 
 ```{r}
@@ -430,7 +430,7 @@ plot_usmap(data = FIPS.data, values = "Black", include = c("AL", "AR", "GA", "LA
 ```
 &ensp;&ensp;
 
-From these two maps is easy to see that our initial intuition was right: the counties with a higher presence of Black have a democratic leaning, but many other counties that have a more modest ethnic representation voted Republican. The state results are based on all citizens votes so it can be a bit misleading to use just a state result to make assumption on its counties.
+From these two maps is easy to see that our initial intuition was right: the counties with a higher Black ethnicity presence have a democratic leaning, but many other counties that have a more modest ethnic representation voted Republican. The state results are based on all citizens votes so it can be a bit misleading to use just a state result to make assumption on its counties.
 Now we are going to analyze another extreme case: the state of New York, were there are a small number of extremely populated areas (mainly the city of New York) and a lot of counties that count very few citizens.
 
 ```{r}
@@ -444,13 +444,13 @@ plot_usmap(data = FIPS.data, values = "TotalPop", include = "NY") +
 ```
 &ensp;&ensp;
 
-In the state of New York the Democratic party won with a big lead of votes, but watching the results map it would appear that republicans won (in fact they got 49 counties out of 62). This is due to the amount of population concentrated only in few counties: urbanized areas are extremely populated so they can easily overturn the outcome in a state. For example the population in New York City alone is around 40% of the entire state and this allowed the victory of the Democratic Party even though they lost in 80% of the counties.
+In the state of New York the Democratic party won with a big lead of votes, but watching the results map it would appear that republicans won (in fact they got 49 counties out of 62). This is due to the amount of population concentrated only in a few counties: urbanized areas are extremely populated so they can easily overturn the outcome in a state. For example the population in New York City alone is around 40% of the entire state and this allowed the victory of the Democratic Party even though they lost in 80% of the counties.
 
 -------------------------------REGRESSIONS--------------------------------------
 
 ## Regression Analysis
 
-Throughout this paragraph, we are going to operate a Regression analysis on different regression models. We will also introduce concepts as Variable Selection and Regularization.
+Throughout this paragraph are going to operate a Regression analysis on different regression models. We will also introduce concepts as Variable Selection and Regularization.
 The aim is to create a model which is able to predict the outcome of the 2020 US elections. Therefore the object of our research is the variable "Party20" which we created to understand the party who won in each county.
 
 ## Logistic Regression
@@ -538,7 +538,7 @@ tpr
 
 &ensp;&ensp; 
 
-The Roc curve is a graphical representation of what happens in the previous table. The AUC (Area Under Curve) always has good values (close to 1) and is correctly shaped, meaning our predictions are fairly accurate. We also find the best threshold value to be at 0.8739469.
+The Roc curve is a graphical representation of what happens in the previous tables. The AUC (Area Under Curve) always has good values (close to 1) and is correctly shaped, meaning our predictions are fairly accurate. We also find the best threshold value to be at 0.8739469.
 
 &ensp;&ensp; 
 
@@ -655,7 +655,7 @@ par(mfrow=c(1,1))
 
 &ensp;&ensp; 
 
-This paragraph explains two more types of regressions, which use a regularization technique in order to avoid overfitting. It does so by imposing a penalty on the unimportant variables, which brings their coefficients towards zero. We will also be analyzing this "penalty" factor lambda, which can be optimally found with simple cross validation. 
+This paragraph explains two more types of regressions, which use a regularization technique in order to avoid overfitting. It does so by imposing a penalty on the unimportant variables, which brings their coefficients towards zero. We will also be analyzing this "penalty" factor λ, which can be optimally found with simple cross validation. 
 
 &ensp;&ensp;
 
@@ -685,7 +685,7 @@ mean((lasso.pred-y.test)^2)
 
 &ensp;&ensp; 
 
-Let us use the cross-validation method to choose the optimal value of lambda.
+Let us use the cross-validation method to choose the optimal value of the parameter λ.
 
 &ensp;&ensp; 
 
@@ -741,7 +741,7 @@ predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])
 
 &ensp;&ensp; 
 
-Let us use the cross-validation method to choose the optimal value of lambda.
+Let us use the cross-validation method to choose the optimal value of λ.
 
 &ensp;&ensp; 
 ```{r}
@@ -772,5 +772,5 @@ mean((ridge.pred - y.test)^2)
 
 The USA are a very heterogeneous nation with many differences not only state by state but also internally, from county to county.
 The population is not uniformly distributed and the density of population, ethnical composition and type of employment tend to have an impact on the election results.
-We took New York as an example to show how the urban parts of the state are more inclusive and tend to have more progressive ideas voting the democrat party. The peripheral areas instead, and to have more traditional views and prefer the republican party. 
-We also considered how the ethnical differences may impact in the election results, taking the southern states as an example. We noticed that the areas with a higher percentage of black ethnicity are more likely to avoid voting the Republicans, and tend to prefer the Democrat Party.
+We took New York as an example to show how the urban parts of the state are more inclusive and tend to have more progressive ideas voting the democrat party. The peripheral areas instead, tend to have more traditional views and generally prefer the republican party. 
+We also considered how the ethnical differences may impact in the election results, taking the southern states as an example. We noticed that the areas with a higher percentage of Black ethnicity are more likely to avoid voting the Republicans, and tend to prefer the Democrat Party.
