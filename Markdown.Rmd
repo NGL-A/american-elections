@@ -185,7 +185,7 @@ data$county[data$state == "LA"] = paste(data$county[data$state == "LA"], "Parish
 
 ## Data visualization
 
-In this section see how our features are distributed among the population.
+In this section we see how our features are distributed among the population.
 We start with three pie charts that represent three of the categories considered in the census of 2017: the ethnicity, the employment sector and the usual method of transport.
 
 ```{r}
@@ -450,7 +450,7 @@ In the state of New York the Democratic party won with a big lead of votes, but 
 
 ## Regression Analysis
 
-Throughout this paragraph are going to operate a Regression analysis on different regression models. We will also introduce concepts as Variable Selection and Regularization.
+Throughout this paragraph we are going to operate a Regression analysis on different regression models. We will also introduce concepts as Variable Selection and Regularization.
 The aim is to create a model which is able to predict the outcome of the 2020 US elections. Therefore the object of our research is the variable "Party20" which we created to understand the party who won in each county.
 
 ## Logistic Regression
