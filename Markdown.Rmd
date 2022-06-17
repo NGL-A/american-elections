@@ -24,7 +24,7 @@ library(usmap)
 
 ## Elections, COVID and Demographic Data
 
-Every 4 year one of the most relevant political events in the world takes place: the election of the US President. After months, even years, of preparations (campaigns, public speeches, sponsors...) the eyes of the entire world are looking to the results of those elections, to the one who will be leading the "free world" in the near future.
+Once every 4 years one of the most relevant political events in the world takes place: the election of the US President. After months, even years, of preparations (campaigns, public speeches, sponsors...) the eyes of the entire world are looking to the results of those elections, to the one who will be leading the "free world" in the near future.
 
 Our project wants to focus on what might affect citizens vote: if the geographical area is relevant, if the type of work can change the preference, if one ethnicity is more likely to vote a Party over the other and if there is any strong correlation between these variables.  
 We found our dataset on [Kaggle](https://www.kaggle.com/datasets/etsc9287/2020-general-election-polls). It contains 2017 demographic and economic situation of each American county, the numbers of 2016 and 2020 US Elections and COVID report until 1st November 2020 (few days before the elections).
