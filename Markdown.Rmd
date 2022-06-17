@@ -1,5 +1,5 @@
 ---
-title: "Elections, COVID and Demographic Data"
+title: "Variable analisys over USA Presidential Elections"
 author: "A. Bissacco, F. Sartori, M. Sboarina"
 date: "21/06/2022"
 output:
@@ -268,7 +268,7 @@ ggplot(df.tr, aes(x = "" , y = value, fill = fct_inorder(group))) +
 ```
 &ensp;&ensp; 
 
-The transport data is correlated to the states geographical morphology: outside the big cities distances become huge so the use of a car by over the 90% of the population (Drive and Carpool) is justified.
+The transport data is correlated to the states geographical morphology: outside big cities distances become huge so the use of a car by over the 90% of the population (Drive and Carpool) is justified.
 
 
 Now we analyse the characteristics of the counties: population and winning party.
@@ -296,11 +296,11 @@ boxplot(log(TotalPop)[Party20=='Democrat'], log(TotalPop)[Party20=='Republican']
 ```
 &ensp;&ensp;
 
-As suspected the distribution is not the same; the democratic counties in general count more inhabitants and the biggest counties are all democratic.
+As suspected the distribution is not the same; the democratic counties have generally more inhabitants and the biggest counties are all democratic.
 
 &ensp;&ensp;
 
-Now we want to understand how the U.S.population is distributed over the territory. With the help of some maps is easier to visualize the geographic areas with more ethnic diversity as well as other data as density of population and unemployment.
+Now we want to understand how the US population is distributed over the territory. With the help of some maps is easier to visualize the geographic areas with more ethnic diversity as well as other data as density of population and unemployment.
 We start with the map representing the 2020 elections results and then the others.
 
 
@@ -454,7 +454,7 @@ The aim is to create a model which is able to predict the outcome of the 2020 US
 
 ## Logistic Regression
 
-Let us introduce this Regression analysis by studying the "Logisitc Regression" and the information it gives us about our problem. The code below estimates a logistic regression model using the glm (generalized linear model) function. The output returns the beta coefficient for each variable, along with its standard error, z value and p value. The '*' symbols are an indication of importance for each variable. We are later going to expand this concept with the "Best Subset method", studying the variables importance relatively to the number of parameters we wish to have in our model.
+Let us introduce this analysis by studying the "Logisitc Regression" and the information it gives us about our problem. The code below estimates a logistic regression model using the glm (generalized linear model) function. The output returns the beta coefficient for each variable, along with its standard error, z-value and p-value. The "*" symbols are an indication of importance for each variable. We are later going to expand this concept with the "Best Subset method", studying the variables importance relatively to the number of parameters we wish to have in our model.
 
 
 ```{r, warning=FALSE}
@@ -590,7 +590,7 @@ tpr
 
 ## Best Subset method
 
-Let us analyze the Best Subset method in order to compare the overall performance of the models Adjusted R2, Cp and BIC via a variable selection. The R function regsubsets() can be used to identify different best models of different sizes. We will be using a maximum of 31 variables for each model. A variable is included in a model if it is marked with the symbol '*'.
+Let us analyze the Best Subset method in order to compare the overall performance of the models Adjusted R2, Cp and BIC via a variable selection. The R function regsubsets() can be used to identify different best models of different sizes. We will be using a maximum of 31 variables for each model. A variable is included in a model if it is marked with the symbol "*".
 
 
 ```{r}
@@ -662,7 +662,7 @@ This paragraph explains two more types of regressions, which use a regularizatio
 
 &ensp;&ensp; 
 
-Lasso Regression (also called L1 regression) adds the “absolute value of magnitude” of the coefficient as a penalty term to the loss function. This can lead to bringing some of the coefficients to be exactly zero, i.e. some of the features are totally neglected for the evaluation of output (when the tuning parameter λ is large enough). Let us start by choosing a grid of random values of λ, we will later investigate its optimality.
+Lasso Regression (also called L1 regression) adds the "absolute value of magnitude" of the coefficient as a penalty term to the loss function. This can lead to bringing some of the coefficients to be exactly zero, i.e. some of the features are totally neglected for the evaluation of output (when the tuning parameter λ is large enough). Let us start by choosing a grid of random values of λ, we will later investigate its optimality.
 
 ```{r}
 #lasso regression code
@@ -690,28 +690,22 @@ Let us use the cross-validation method to choose the optimal value of the parame
 
 ```{r}
 # use cross-validation to choose the value of lambda 
-
 cv.out.lasso <- cv.glmnet(X[train, ], y[train], alpha = 1,lambda = grid.lasso, nfold=10)
 
 cv.out.lasso$lambda
 summary(cv.out.lasso$lambda)
-
 plot(cv.out.lasso)
 i.bestlam.lasso <- which.min(cv.out.lasso$cvm)
 i.bestlam.lasso
 bestlam.lasso <- cv.out.lasso$lambda[i.bestlam.lasso]
 bestlam.lasso
-
 cv.out.lasso$cvm[i.bestlam.lasso]
-
 lasso.pred <- predict(lasso.mod, s = bestlam.lasso,
                       newx = X[test, ])
 # mean squared error
-
 mean((lasso.pred - y.test)^2)
 
 # residual sum of squares
-
 lasso.RSS <- sum((lasso.pred - y.test)^2)
 lasso.RSS
 ```
@@ -720,27 +714,23 @@ lasso.RSS
 
 ## Ridge Regression
 
-The Ridge Regression (also called L2 regression) adds the “squared value of magnitude” of the coefficient as a penalty term to the loss function. Let us start by choosing a grid of random values of λ, we will later investigate its optimality.
+The Ridge Regression (also called L2 regression) adds the "squared value of magnitude" of the coefficient as a penalty term to the loss function. Let us start by choosing a grid of random values of λ, we will later investigate its optimality.
 
 &ensp;&ensp; 
 
 ```{r}
 #ridge regression
-
 X <- model.matrix(percentage20_Joe_Biden~.,df)
 y<-percentage20_Joe_Biden
 grid.ridge<-10^seq(2,-4,length=100)
 ridge.mod<-glmnet(X,y,alpha = 0,lambda = grid.ridge)
 plot(ridge.mod, xvar="lambda")
 
-
-
 train <- sample(1:nrow(X),nrow(X)/2)
 test<-(-train)
 y.test<-y[test]
 ridge.pred<-predict(ridge.mod,s=4,newx = X[test,],type = "response")
 mean((ridge.pred-y.test)^2)
-
 predict(ridge.mod,s=0,exact = TRUE,type = "coefficients",x=X[train,],y=y[train])[1:20,]
 
 ```
@@ -753,7 +743,6 @@ Let us use the cross-validation method to choose the optimal value of λ.
 ```{r}
 
 # use cross-validation to choose the value of lambda 
-
 cv.out <- cv.glmnet(X[train, ], y[train], alpha = 0,lambda = grid.ridge, nfold=10)
 
 cv.out$cvm
@@ -766,15 +755,12 @@ bestlam <- cv.out$lambda[i.bestlam]
 bestlam
 cv.out$cvm[i.bestlam]
 
-
 ridge.pred <- predict(ridge.mod, s = bestlam,
                       newx = X[test, ])
 # mean squared error
-
 mean((ridge.pred - y.test)^2)
 
 # residual sum of squares
-
 ridge.RSS <- sum((ridge.pred - y.test)^2)
 ridge.RSS
 ```
@@ -788,7 +774,7 @@ ridge.RSS
 ```
 &ensp;&ensp;
 We can notice that the residual sum of square is lower for the ridge regression than for the lasso regression so we can say that the ridge regression gives a better approximation of our problem.  
-From those regressions we can see that a variable that is taken into great consideration is 'Construction'. Using best subset method it appears already in the model with two variables and it has always relatively high coefficient in the regressions. To be certain of the relevance of this variable over the election result we decide to conduct a t-test over republican and democratic counties.
+From those regressions we can see that a variable that is taken into great consideration is "Construction". Using best subset method it appears already in the model with two variables and it has always relatively high coefficient in the regressions. To be certain of the relevance of this variable over the election result we decide to conduct a t-test over Republican and Democratic counties.
 &ensp;&ensp; 
 
 ```{r}
@@ -796,12 +782,12 @@ t.test(Construction[c(Party20=='Republican')],Construction[c(Party20=='Democrat'
 
 ```
 
-This test confirmed that 'Construction' is considerably different between democratic and republican counties on average so it is in some form related with the political leaning of a county. 
+This test confirmed that "Construction" is considerably different between Democratic and Republican counties on average so it is in some form related with the political leaning of a county. 
 
 
 ### Conclusion
 
 The USA are a very heterogeneous nation with many differences not only state by state but also internally, from county to county.
 The population is not uniformly distributed and the density of population, ethnical composition and type of employment tend to have an impact on the election results.
-We took New York as an example to show how the urban parts of the state are more inclusive and tend to have more progressive ideas voting the democrat party. The peripheral areas instead, tend to have more traditional views and generally prefer the republican party. 
+We took New York as an example to show how the urban parts of the state are more inclusive and tend to have more progressive ideas voting the democrat party. The peripheral areas instead, tend to have more traditional views and generally prefer the Republican Party. 
 We also considered how the ethnical differences may impact in the election results, taking the southern states as an example. We noticed that the areas with a higher percentage of Black ethnicity are more likely to avoid voting the Republicans, and tend to prefer the Democrat Party.
